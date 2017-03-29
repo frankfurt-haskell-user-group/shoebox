@@ -24,7 +24,7 @@ url: "http://frankfurt-haskell-user-group.github.io" # the base hostname & proto
 
 # Build settings
 markdown: kramdown
-theme: jekyll-theme-hacker
+theme: jekyll-theme-modernist
 gems:
   - jekyll-feed
 exclude:
