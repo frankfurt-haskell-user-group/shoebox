@@ -1,2 +1,0 @@
-# shoebox
-The shoebox project
