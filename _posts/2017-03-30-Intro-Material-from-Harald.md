@@ -16,7 +16,7 @@ hier links auf zwei tar-Files, die eine Demo für das Shoebox-Interlinearisierun
 Es handelt sich dabei um ein MS-DOS-Prgramm, das im Emulator "dosbox" läuft".
 Installationsanleitung:
 1. Bitte zuerst die Dosbox-Software installieren. Bei Linux am besten
-über die Paketverwaltung. Für Windows/Mac kann man die Dosbox hier herunterladen: http://www.dosbox.com/download.php?main=1
+über die Paketverwaltung. Für Windows/Mac kann man die Dosbox hier herunterladen: https://www.dropbox.com/s/s6ua1gng5e2eu9k/DOSBox0.74-win32-installer.exe?dl=0
 
 2. Dann dosbox1.tar.gz in ein Verzeichnis namens "dosc" entpacken
 
