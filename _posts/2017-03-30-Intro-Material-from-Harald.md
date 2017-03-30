@@ -7,8 +7,8 @@ Harald once explained in an e-mail, how to install shoebox.
 I moved the files to some outer storage (dropbox) and made them available here again.
 The links are provided below. And here is the install instructions from the original source:
 
-https://www.dropbox.com/s/2vpmiqzxni49gar/dosbox1.tar.gz?dl=0
-https://www.dropbox.com/s/08m544wrlezfl9z/dosbox2.tar.gz?dl=0
+[dosbox1](https://www.dropbox.com/s/2vpmiqzxni49gar/dosbox1.tar.gz?dl=0)
+[dosbox2](https://www.dropbox.com/s/08m544wrlezfl9z/dosbox2.tar.gz?dl=0)
 
 Hallo zusammen,
 hier links auf zwei tar-Files, die eine Demo für das Shoebox-Interlinearisierungstool enthalten:
@@ -16,7 +16,7 @@ hier links auf zwei tar-Files, die eine Demo für das Shoebox-Interlinearisierun
 Es handelt sich dabei um ein MS-DOS-Prgramm, das im Emulator "dosbox" läuft".
 Installationsanleitung:
 1. Bitte zuerst die Dosbox-Software installieren. Bei Linux am besten
-über die Paketverwaltung. Für Windows/Mac kann man die Dosbox hier herunterladen: https://www.dropbox.com/s/s6ua1gng5e2eu9k/DOSBox0.74-win32-installer.exe?dl=0
+über die Paketverwaltung. Für Windows/Mac kann man die Dosbox hier herunterladen: [dosbox windows](https://www.dropbox.com/s/s6ua1gng5e2eu9k/DOSBox0.74-win32-installer.exe?dl=0)
 
 2. Dann dosbox1.tar.gz in ein Verzeichnis namens "dosc" entpacken
 
