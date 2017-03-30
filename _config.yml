@@ -3,4 +3,5 @@ url: https://frankfurt-haskell-user-group.github.io
 theme: jekyll-theme-architect
 collections:
   posts:
-    output:   true
+    output: true
+    future: true
