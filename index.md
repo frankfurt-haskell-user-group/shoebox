@@ -2,6 +2,10 @@
 
 This project is about a nice tool, we are pragramming together to help linguists to accomplish the catpurind and querying of language words and translations. In principle the tool helps with what is called an "interlinear", if you want you can lookup a short explanation in [wikipedia on interlinear gloss](https://en.wikipedia.org/wiki/Interlinear_gloss).
 
+The github source for this project is here: [github](https://github.com/frankfurt-haskell-user-group/shoebox)
+
+Please send me a notification by github, if you want to be enabled to contribute to this.
+
 ## Posts
 
 <ul>
