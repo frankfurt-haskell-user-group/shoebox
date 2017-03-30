@@ -4,5 +4,5 @@ You can use the [editor on GitHub](https://github.com/frankfurt-haskell-user-gro
 
 Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
 
-Introduction to [markdown] and jekyll.
+Introduction to [markdown](https://github.com/frankfurt-haskell-user-group/shoebox/edit/gh-pages/markdown.md) and jekyll.
 
