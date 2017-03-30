@@ -1,5 +1,4 @@
 ---
-layout: post
 title: New repo created
 date: 2017-03-30
 ---
