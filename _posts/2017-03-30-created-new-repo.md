@@ -1,3 +1,8 @@
+--
+title: Created New Blog
+date: 2017-03-30
+--
+
 New
 
 Hi all, I created this new repo with documentation section today. I hope, it will be useful for our collaboration. A couple of hints:
