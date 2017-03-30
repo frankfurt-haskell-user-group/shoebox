@@ -1,6 +1,7 @@
 ---
 layout: post
 title: New repo created
+date: 2017-03-30
 ---
 
 Hi all, I created this new repo with documentation section today. I hope, it will be useful for our collaboration. A couple of hints:
