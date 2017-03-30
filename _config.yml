@@ -1,4 +1,4 @@
-baseurl: /shoebox/ 
-url: https://frankfurt-haskell-user-group.github.io
+baseurl: "/shoebox"
+url: "https://frankfurt-haskell-user-group.github.io"
 theme: jekyll-theme-architect
 future: true
