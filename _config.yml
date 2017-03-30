@@ -13,14 +13,14 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-title: The Shoebox Project Documentation
-email: althainz@gmail.com 
-description: > # this means to ignore newlines until "baseurl:"
-  Write an awesome description for your new site here. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
-baseurl: "/shoebox" # the subpath of your site, e.g. /blog
-url: "http://frankfurt-haskell-user-group.github.io" # the base hostname & protocol for your site, e.g. http://example.com
+title: "The Shoebox Project Documentation"
+email: "althainz@gmail.com"
+description: 
+  The shoebox project is an undertaking of the frankfurt haskell user group.
+  Together, we develop an application, which is helping linguists to 
+  capture and query data on languages.
+baseurl: "/shoebox" 
+url: "https://frankfurt-haskell-user-group.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 
 # Build settings
 markdown: kramdown
