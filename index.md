@@ -7,7 +7,7 @@ This project is about a nice tool, we are pragramming together to help linguists
 <ul>
   {% for post in site.posts %}
     <li>
-        <a href="{{ site.baseurl }}{% post_url post.url %}">{{ post.title }}</a>
+        <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a>
     </li>
   {% endfor %}
 </ul>
