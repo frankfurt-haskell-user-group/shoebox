@@ -13,20 +13,4 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-title: "The Shoebox Project Documentation"
-email: "althainz@gmail.com"
-description: 
-  The shoebox project is an undertaking of the frankfurt haskell user group.
-  Together, we develop an application, which is helping linguists to 
-  capture and query data on languages.
-baseurl: "/shoebox" 
-url: "https://frankfurt-haskell-user-group.github.io" # the base hostname & protocol for your site, e.g. http://example.com
-
-# Build settings
-markdown: kramdown
 theme: jekyll-theme-architect
-gems:
-  - jekyll-feed
-exclude:
-  - Gemfile
-  - Gemfile.lock
