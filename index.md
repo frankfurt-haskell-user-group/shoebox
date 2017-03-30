@@ -18,7 +18,7 @@ Please send me a notification by github, if you want to be enabled to contribute
 
 ## Tasks
 
-There are a number of suggestion, what needs to be done as one of the next tasks. Going with the style of github, I put them in the issues log, so everybody can look at it. Just here for some examples:
+There are a number of suggestion, what needs to be done as one of the next tasks. Going with the style of github, I put them in the [issues log](https://github.com/frankfurt-haskell-user-group/shoebox/issues), so everybody can look at it. Just here for some examples:
 
 - Modify backend interface to behave more verbal
 - Write user stories for the things Harald is doing in the video
