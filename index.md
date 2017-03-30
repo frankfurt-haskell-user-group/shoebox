@@ -8,6 +8,8 @@ Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://j
 
 Introduction to [markdown and jekyll](markdown).
 
+## Posts
+
 <ul>
   {% for post in site.posts %}
     <li>
