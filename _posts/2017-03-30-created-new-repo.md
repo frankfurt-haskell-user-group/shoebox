@@ -1,7 +1,7 @@
---
+---
 title: Created New Blog
 date: 2017-03-30
---
+---
 
 New
 
