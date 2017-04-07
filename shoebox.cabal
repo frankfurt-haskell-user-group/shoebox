@@ -39,6 +39,8 @@ executable shoe
                      , strict
                      , split
                      , containers
+                     , wai-cors
+                     , warp
   other-modules:       WebBackend
   hs-source-dirs:      main
   default-language:    Haskell2010
