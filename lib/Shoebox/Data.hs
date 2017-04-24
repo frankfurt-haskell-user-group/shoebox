@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, DeriveDataTypeable, DeriveGeneric #-}
 module Shoebox.Data where
 
+import Prelude hiding (Word)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Map as M
@@ -16,6 +17,7 @@ import GHC.Generics
 newtype TextLine = TX Text deriving (Show, Read, Eq, Data, Typeable, Generic)
 
 -- A TextLine is broken up into Morpheme's, which can be lexical elements, suffixed or prefixes
+-- MorphemeBreak is a segmented word.
 newtype MorphemeBreak = MB [Morpheme] deriving (Show, Read, Eq, Data, Typeable, Generic)
 data Morpheme = MorphemeLex Text | MorphemeSuffix Text | MorphemePrefix Text deriving (Show, Read, Eq, Data, Typeable, Generic)
 
@@ -30,10 +32,18 @@ data InterlinearBlock = ILB TextLine MorphemeBreak GlossLine deriving (Show, Rea
 -- The databases
 -- -------------
 
-type ShoeSegmentationDB = M.Map Text [MorphemeBreak] -- segmentation
-type ShoeLexiconDB = M.Map Text [Text] -- base words, lexicon
-type ShoeSuffixDB  = M.Map Text [Text] -- suffixes
-type ShoePrefixDB  = M.Map Text [Text] -- prefixes
+type Word = Text
+type Lemma = Text
+type Meaning = Text
+type Suffix = Text
+type SuffixTag = Text
+type Prefix = Text
+type PrefixTag = Text
+
+type ShoeSegmentationDB = M.Map Word [MorphemeBreak] -- segmentation
+type ShoeLexiconDB = M.Map Lemma [Meaning] -- base words, lexicon
+type ShoeSuffixDB  = M.Map Suffix [SuffixTag] -- suffixes
+type ShoePrefixDB  = M.Map Prefix [PrefixTag] -- prefixes
 type ShoeDB = (ShoeLexiconDB, ShoeSuffixDB, ShoePrefixDB, ShoeSegmentationDB)
 
 instance ToJSON MorphemeBreak

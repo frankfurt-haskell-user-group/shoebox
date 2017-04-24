@@ -1,9 +1,10 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveGeneric, OverloadedStrings #-}
 module Shoebox.Interface 
 (
 
 -- Database Management
 ShoeDB,
+QueryResult(..),
 
 shoeImportDB,
 shoeListDBs,
@@ -38,6 +39,10 @@ import qualified Data.Map as M
 import Control.Exception (catch, SomeException)
 import qualified System.IO.Strict as S
 
+import Data.Typeable
+import Data.Data
+import Data.Aeson
+import GHC.Generics
 
 import Shoebox.Data
 import Shoebox.Basics
@@ -116,14 +121,24 @@ catchAny = Control.Exception.catch
 -- Base Reading API for data
 -- -------------------------
 
+data QueryResult = QueryResult { morphemeBreaks :: [MorphemeBreak]
+                               , meanings :: [Meaning]
+                               , prefixTags :: [PrefixTag]
+                               , suffixTags :: [SuffixTag]
+                               }
+    deriving (Show, Read, Eq, Data, Typeable, Generic)
+
+instance ToJSON QueryResult
+instance FromJSON QueryResult
+
 -- returns entries for input word from segDB, lexDB, prefixDB, suffixDB
-shoeQueryDB :: ShoeDB -> Text -> ([MorphemeBreak], [Text], [Text], [Text])
+shoeQueryDB :: ShoeDB -> Text -> QueryResult
 shoeQueryDB shoeDB word = let
   (lexDB, suffDB, preDB, segDB) = shoeDB
   queryDB db = case M.lookup word db of 
       Nothing -> []
       Just l -> l
-  in (queryDB segDB, queryDB lexDB, queryDB preDB, queryDB suffDB)
+  in QueryResult (queryDB segDB) (queryDB lexDB) (queryDB preDB) (queryDB suffDB)
 
 -- Base Writing API for data
 -- -------------------------
