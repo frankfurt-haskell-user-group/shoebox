@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "name": "shoebox-ui-halogen",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output",
+    "dist"
+  ],
+  "dependencies": {
+    "purescript-halogen": "^2.0.0",
+    "purescript-affjax": "^4.0.0",
+    "purescript-argonaut": "^3.0.0",
+    "purescript-lists": "^4.7.0"
+  }
+}

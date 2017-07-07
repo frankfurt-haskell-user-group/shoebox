@@ -1,0 +1,8 @@
+/frontend/bower_components/
+/frontend/node_modules/
+/frontend/.pulp-cache/
+/frontend/output/
+/frontend/dist/app.js
+
+
+/backend/.stack-work
