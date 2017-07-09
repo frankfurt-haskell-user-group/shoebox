@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Shoebox.Basics where
+module Shoebox.QueryRules where
 
 import Text.Printf
 import Data.List (intercalate)
@@ -10,6 +10,32 @@ import qualified Data.Map as M
 import Data.Maybe
 
 import Shoebox.Data
+
+data QRFlag = BreakFlag
+
+-- |A query rule, goes from a source tag, towards a target tag, with a lookup in a specific DB
+data QueryRule = QueryRule {
+    qrSourceTag :: SBDataTag,
+    qrTargetTag :: SBDataTag,
+    qrSearchDBs :: [(SBDatabase, SBDataTag, SBDataTag, [QRFlag])]
+    }
+
+-- |A set of query rules defines the shoebox
+data ShoeBox = ShoeBox [QueryRule]
+
+shoeBoxFromDB :: SBDatabase -> SBDatabase -> SBDatabase -> ShoeBox
+shoeBoxFromDB lDB pDB sDB = ShoeBox [
+    QueryRule txTag mbTag [
+        (pDB, flTag, mbTag, [BreakFlag]),
+        (lDB, leTag, leTag, []),
+        (sDB, leTag, leTag, [])
+        ],
+    QueryRule mbTag glTag [
+        (lDB, leTag, meTag, []),
+        (sDB, leTag, meTag, [])
+        ]
+    ]
+
 
 {-
 
@@ -22,7 +48,7 @@ lookupMB :: MorphemeBreak -> ShoeLexiconDB -> ShoeSuffixDB -> ShoePrefixDB -> [C
 lookupMB (MB mbs) lexiconDB suffixDB prefixDB = map go mbs
   where
     go (MorphemeLex l)    = MeaningChoice $ fromMaybe [] (M.lookup l lexiconDB)
-    go (MorphemeSuffix s) = AbbreviationChoice $ fromMaybe [] (M.lookup s suffixDB)
+    go (MorphemeSuffix s) = AbbreviationChoice $ fromMaybe [] (M.lookup s suffixDB)qr
     go (MorphemePrefix p) = AbbreviationChoice $ fromMaybe [] (M.lookup p prefixDB)
 
 gloss :: Text -> ShoeDB -> [InterlinearBlock]

@@ -24,26 +24,42 @@ import Data.List (find)
 
 -- |Entry-Types in the database can have the following types
 data SBDataType = SbtText | SbtTextArray | SbtNumber deriving (Show, Read, Eq, Data, Typeable, Generic)
+instance ToJSON SBDataType
+instance FromJSON SBDataType
 
 -- |Entries in the database can have tags or mnemonics
 data SBDataTag = SBDataTag { sbdtMemo ::Text } deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
+instance ToJSON SBDataTag
+instance FromJSON SBDataTag
 
 -- |One row of a DB schema
 data SBDataRowDef = SBDataRowDef { sbrdTag::SBDataTag, sbrdDesc::Text, sbrdType::SBDataType } deriving (Show, Read, Eq, Data, Typeable, Generic)
+instance ToJSON SBDataRowDef
+instance FromJSON SBDataRowDef
 
 -- |A DB schema describes all rows possible and a marker, which one is the key field
 data SBDataSchema = SBDataSchema { sbdsKey::SBDataTag, sbdsRowDefs::[SBDataRowDef] } deriving (Show, Read, Eq, Data, Typeable, Generic)
+instance ToJSON SBDataSchema
+instance FromJSON SBDataSchema
 
 
 -- |Entries in the database can have the following values
 data SBDataEntry = SbeText Text | SbeTextArray [Text] | SbeNumber Int deriving (Show, Ord, Read, Eq, Data, Typeable, Generic)
+instance ToJSON SBDataEntry
+instance FromJSON SBDataEntry
 
 -- |One Data Row
 data SBDataRow = SBDataRow { sbdrTag::SBDataTag, sbdrEntry::SBDataEntry } deriving (Show, Read, Eq, Data, Typeable, Generic)
+instance ToJSON SBDataRow
+instance FromJSON SBDataRow
 
 -- |A database consists of a schema and the actual data-fields, the tag and type of the key is encoded in the schema def
 -- In the data rows, of the map, the key is not included, it is included in the key of the map
 data SBDatabase = SBDatabase { sbdbSchema::SBDataSchema, sbdbRows::M.Map SBDataEntry [SBDataRow] } deriving (Show, Read, Eq, Data, Typeable, Generic)
+instance FromJSONKey SBDataEntry 
+instance ToJSONKey SBDataEntry 
+instance ToJSON SBDatabase
+instance FromJSON SBDatabase
 
 -- |Errors for SB Data
 data SBError = SbErrorUpdateWrongKeyType
@@ -56,6 +72,9 @@ data SBError = SbErrorUpdateWrongKeyType
         |SbErrorDataParsingFailed Text 
 
         deriving (Show, Read, Eq, Data, Typeable, Generic)
+
+instance ToJSON SBError
+instance FromJSON SBError
 
 -- |Type of a tag in DB, assumed to be present in Schema
 dbTagType :: SBDatabase -> SBDataTag -> SBDataType
