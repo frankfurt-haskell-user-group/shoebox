@@ -1,6 +1,8 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric, OverloadedStrings #-}
 module Shoebox.Interface 
 (
+  loadDB
+{-
 
 -- Database Management
 ShoeDB,
@@ -20,6 +22,7 @@ shoeWriteSegDB,
 shoeWriteLexDB,
 shoeWritePrefixDB,
 shoeWriteSuffixDB,
+-}
 )
 where
 
@@ -48,6 +51,22 @@ import Shoebox.Data
 import Shoebox.Basics
 import Shoebox.Parser
 
+import qualified Data.ByteString as BS
+import qualified Data.Text.Encoding as EN
+
+
+loadDB :: FilePath -> SBDatabase -> IO (Either SBError SBDatabase)
+loadDB file db = do
+  dbTxt <- BS.readFile file
+  let dbTxt2 = EN.decodeUtf8 dbTxt
+  -- since we read binary, we need to care for /r ourselves
+  let dbTxt3 = T.replace (T.pack "\r\n") (T.pack "\n") dbTxt2
+
+  case parseDB dbTxt3 db of
+    Left err -> return $ Left err
+    Right records -> return $ Right (dbInsertFromRecords db records)
+
+{-
 -- this is the official interface towards the base functionality of the shoebox backend
 
 -- DB Management
@@ -142,7 +161,6 @@ shoeQueryDB shoeDB word = let
 
 -- Base Writing API for data
 -- -------------------------
-
 writeDB :: M.Map Text [a] -> Text -> [a] -> M.Map Text [a]
 writeDB mapDB key l = case l of
   [] -> M.delete key mapDB
@@ -176,3 +194,4 @@ shoeWritePrefixDB db  key l = let
   preDB' = writeDB preDB key l
   in (lexDB, suffDB, preDB', segDB)
 
+-}

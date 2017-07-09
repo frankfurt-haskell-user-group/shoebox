@@ -11,6 +11,8 @@ import Data.Maybe
 
 import Shoebox.Data
 
+{-
+
 breakTX :: Text -> ShoeSegmentationDB -> [MorphemeBreak]
 breakTX textEl segmentationDB =
   fromMaybe [MB [MorphemeLex textEl]]
@@ -41,7 +43,7 @@ pp = undefined
 removePunc :: ShoeDB -> Text -> Text
 removePunc = undefined
 
-{-
+-- OLD 
 
 import DatabaseParser
 

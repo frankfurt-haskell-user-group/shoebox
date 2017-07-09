@@ -3,6 +3,8 @@
 /frontend/.pulp-cache/
 /frontend/output/
 /frontend/dist/app.js
-
+/frontend/npm-debug.log
 
 /backend/.stack-work
+/backend/shoeB.exe
+
