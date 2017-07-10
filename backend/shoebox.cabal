@@ -19,6 +19,7 @@ library
                      , parsec
                      , bytestring
                      , aeson
+                     , aeson-pretty
                      , directory
                      , filepath
                      , strict

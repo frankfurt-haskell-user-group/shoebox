@@ -18,8 +18,8 @@ import qualified Data.Text as T
 import qualified Data.Map as M
 import Data.Typeable
 import Data.Data
-import Data.Aeson
 import GHC.Generics
+import Data.Aeson
 import Data.List (find)
 
 -- |Entry-Types in the database can have the following types
@@ -61,6 +61,19 @@ instance ToJSONKey SBDataEntry
 instance ToJSON SBDatabase
 instance FromJSON SBDatabase
 
+-- |A database identifier contains a shortcut for the database and a description
+data SBDbIdent = SBDbIdent { sbdiName::Text, sbdiDescription::Text } deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
+instance FromJSONKey SBDbIdent 
+instance ToJSONKey SBDbIdent 
+instance ToJSON SBDbIdent
+instance FromJSON SBDbIdent
+
+-- |All data of one Shoebox in a map from ident to database
+data ShoeboxData = ShoeboxData (M.Map SBDbIdent SBDatabase) deriving (Show, Read, Eq, Data, Typeable, Generic)
+instance ToJSON ShoeboxData
+instance FromJSON ShoeboxData
+
+
 -- |Errors for SB Data
 data SBError = SbErrorUpdateWrongKeyType
         | SbErrorUpdateWrongDataType
@@ -69,7 +82,9 @@ data SBError = SbErrorUpdateWrongKeyType
         | SbErrorQueryWrongKeyType
         | SbErrorQueryWrongDataTag
 
-        |SbErrorDataParsingFailed Text 
+        |SbErrorDataParsingFailed Text
+
+        |SbErrorQueryRuleInputNotText 
 
         deriving (Show, Read, Eq, Data, Typeable, Generic)
 
@@ -172,6 +187,12 @@ leTag = SBDataTag "le"
 meTag = SBDataTag "me"
 coTag = SBDataTag "co"
 
+-- some db idents for clarity
+textDbId = SBDbIdent "text DB" "text database, containing complete sentences and translations"
+parsingDbId = SBDbIdent "parsing DB" "database, containing break-downs of words, for parsing"
+lexDbId = SBDbIdent "lex DB" "database, containing lexical elements and translations (meanings)"
+suffixDbId = SBDbIdent "suffix DB" "database, containing prefixes and suffixes"
+
 -- |Test database for the start, text content
 textDB = SBDatabase 
             (SBDataSchema 
@@ -206,60 +227,10 @@ lexDB = SBDatabase
 
 suffixDB = lexDB
 
-data ShoeDB = ShoeDB { shoeDBTxt :: SBDatabase, shoeDBParsing :: SBDatabase, shoeDBLex :: SBDatabase, shoeDBSuffix :: SBDatabase } 
-              deriving (Show, Read, Eq, Data, Typeable, Generic)
+newShoeboxData = ShoeboxData $ M.fromList [
+        (textDbId, textDB),
+        (parsingDbId, parsingDB),
+        (lexDbId, lexDB),
+        (suffixDbId, suffixDB)
+    ]
 
-newEmptyDB = ShoeDB textDB parsingDB lexDB suffixDB
-
-{-
-
--- The data types
--- --------------
-
--- The input (raw) data without any further processing is a TextLine
-newtype TextLine = TX Text deriving (Show, Read, Eq, Data, Typeable, Generic)
-
--- A TextLine is broken up into Morpheme's, which can be lexical elements, suffixed or prefixes
--- MorphemeBreak is a segmented word.
-newtype MorphemeBreak = MB [Morpheme] deriving (Show, Read, Eq, Data, Typeable, Generic)
-data Morpheme = MorphemeLex Text | MorphemeSuffix Text | MorphemePrefix Text deriving (Show, Read, Eq, Data, Typeable, Generic)
-
--- A GlossLine summarizes all Glosses, which are meanings attached to Morphemes
-newtype GlossLine = GL [Choice] deriving (Show, Read, Eq, Data, Typeable, Generic)
-data Choice = MeaningChoice [Text] | AbbreviationChoice [Text] deriving (Show, Read, Eq, Data, Typeable, Generic)
-
--- An interlinear block is a "categorized" textline, inluding its morphemes and glosses
-data InterlinearBlock = ILB TextLine MorphemeBreak GlossLine deriving (Show, Read, Eq, Data, Typeable, Generic)
-
--- The databases
--- -------------
-
-type Word = Text
-type Lemma = Text
-type Meaning = Text
-type Suffix = Text
-type SuffixTag = Text
-type Prefix = Text
-type PrefixTag = Text
-
-type ShoeSegmentationDB = M.Map Word [MorphemeBreak] -- segmentation
-type ShoeLexiconDB = M.Map Lemma [Meaning] -- base words, lexicon
-type ShoeSuffixDB  = M.Map Suffix [SuffixTag] -- suffixes
-type ShoePrefixDB  = M.Map Prefix [PrefixTag] -- prefixes
-type ShoeDB = (ShoeLexiconDB, ShoeSuffixDB, ShoePrefixDB, ShoeSegmentationDB)
-
-instance ToJSON MorphemeBreak
-instance ToJSON Morpheme
-instance ToJSON GlossLine
-instance ToJSON Choice
-instance ToJSON InterlinearBlock
-instance ToJSON TextLine
-
-instance FromJSON MorphemeBreak
-instance FromJSON Morpheme
-instance FromJSON GlossLine
-instance FromJSON Choice
-instance FromJSON InterlinearBlock
-instance FromJSON TextLine
-
--}

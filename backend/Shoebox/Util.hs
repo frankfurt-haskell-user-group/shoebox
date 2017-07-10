@@ -17,6 +17,7 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text.Encoding as EN
 import System.IO
 import Data.Aeson
+import Data.Aeson.Encode.Pretty
 
 _cleanCR =  T.replace (T.pack "\r") (T.pack "\n") . T.replace (T.pack "\r\n") (T.pack "\n")  
 
@@ -49,4 +50,4 @@ decodeFromText :: FromJSON a => T.Text -> Maybe a
 decodeFromText = decode . BL.fromStrict . EN.encodeUtf8
 
 encodeToText :: ToJSON a => a -> T.Text
-encodeToText = EN.decodeUtf8 . BL.toStrict . encode 
+encodeToText = EN.decodeUtf8 . BL.toStrict . encodePretty 

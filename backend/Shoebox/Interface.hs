@@ -1,32 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveGeneric, OverloadedStrings #-}
 module Shoebox.Interface 
-(
-  loadDB,
-  listDBs,
-  saveDB,
-  readDB,
-{-
 
--- Database Management
-ShoeDB,
-QueryResult(..),
-
-shoeImportDB,
-shoeListDBs,
-shoeReadDB,
-shoeWriteDB,
-shoeDeleteDB,
-
--- Base Reading API
-shoeQueryDB,
-
--- Base Writing API
-shoeWriteSegDB,
-shoeWriteLexDB,
-shoeWritePrefixDB,
-shoeWriteSuffixDB,
--}
-)
 where
 
 import Text.Printf
@@ -73,32 +47,39 @@ listDBs dirname = do
     let f'' = ( filter (\n -> not (n `elem` ["..", "."])) . S.toList . S.fromList ) f'
     return f''
 
-saveDB :: SBDatabase -> SBDatabase -> SBDatabase -> T.Text -> T.Text -> IO ()
-saveDB lDB pDB sDB dirName dbName = do
+saveShoebox :: Shoebox -> T.Text -> T.Text -> IO ()
+saveShoebox sb dirName dbName = do
     let fname = T.concat [dirName, "/", dbName, ".sbx"]
-    writeUtf8File fname (encodeToText (lDB, pDB, sDB))
+    writeUtf8File fname (encodeToText sb)
     return ()
 
-readDB :: T.Text -> T.Text -> IO (SBDatabase, SBDatabase, SBDatabase)
-readDB dirName dbName = do
+readShoebox :: T.Text -> T.Text -> IO Shoebox
+readShoebox dirName dbName = do
     -- check new file
     files <- getDirectoryContents (T.unpack dirName)  
     if (T.unpack dbName) ++ ".sbx" `elem` files
       then do
         let fname = T.concat [dirName, "/", dbName, ".sbx"]
         d <- readUtf8File fname
-        let (Just dbs) = decodeFromText d
-        return dbs 
-      else readOldDB $ T.concat [dirName, "/", dbName]
+        let (Just sb) = decodeFromText d
+        return sb 
+      else readOldDBs $ T.concat [dirName, "/", dbName]
 
 
-readOldDB :: T.Text -> IO (SBDatabase, SBDatabase, SBDatabase)
-readOldDB fname = do
+readOldDBs :: T.Text -> IO Shoebox
+readOldDBs fname = do
     let fromRight a = let (Right a') = a in a'
+    let sb = newShoebox
     lDB <- fromRight <$> loadDB (T.concat [fname, ".u8"]) lexDB 
-    pDB <- fromRight <$> loadDB (T.concat [fname, "ps.u8"]) lexDB 
-    sDB <- fromRight <$> loadDB (T.concat [fname, "sf.u8"]) lexDB 
-    return (lDB, pDB, sDB)
+    pDB <- fromRight <$> loadDB (T.concat [fname, "ps.u8"]) parsingDB 
+    sDB <- fromRight <$> loadDB (T.concat [fname, "sf.u8"]) suffixDB 
+    let sbd = ShoeboxData $ M.fromList [
+                (textDbId, textDB),
+                (parsingDbId, pDB),
+                (lexDbId, lDB),
+                (suffixDbId, sDB)
+                ]
+    return $ sb {sbData = sbd}
 
 {-
 -- this is the official interface towards the base functionality of the shoebox backend

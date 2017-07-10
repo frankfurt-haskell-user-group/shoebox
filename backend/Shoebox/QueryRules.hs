@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, DeriveDataTypeable, DeriveGeneric  #-}
 module Shoebox.QueryRules where
 
 import Text.Printf
@@ -9,35 +9,80 @@ import qualified Data.Text.IO as T
 import qualified Data.Map as M
 import Data.Maybe
 
+import Data.Data
+import Data.Typeable
+import GHC.Generics
+import Data.Aeson
+
 import Shoebox.Data
 
-data QRFlag = BreakFlag
+data QRFlag = BreakFlag  deriving (Show, Read, Eq, Data, Typeable, Generic)
+instance ToJSON QRFlag
+instance FromJSON QRFlag
 
 -- |A query rule, goes from a source tag, towards a target tag, with a lookup in a specific DB
 data QueryRule = QueryRule {
+    qrTextDB :: SBDbIdent,
     qrSourceTag :: SBDataTag,
     qrTargetTag :: SBDataTag,
-    qrSearchDBs :: [(SBDatabase, SBDataTag, SBDataTag, [QRFlag])]
-    }
+    qrSearchDBs :: [(SBDbIdent, SBDataTag, [QRFlag])]
+    } deriving (Show, Read, Eq, Data, Typeable, Generic)
 
--- |A set of query rules defines the shoebox
-data ShoeBox = ShoeBox [QueryRule]
+instance ToJSON QueryRule
+instance FromJSON QueryRule
 
-shoeBoxFromDB :: SBDatabase -> SBDatabase -> SBDatabase -> ShoeBox
-shoeBoxFromDB lDB pDB sDB = ShoeBox [
-    QueryRule txTag mbTag [
-        (pDB, flTag, mbTag, [BreakFlag]),
-        (lDB, leTag, leTag, []),
-        (sDB, leTag, leTag, [])
-        ],
-    QueryRule mbTag glTag [
-        (lDB, leTag, meTag, []),
-        (sDB, leTag, meTag, [])
+-- |The data plus a set of query rules defines the shoebox
+data Shoebox = Shoebox {
+    sbData :: ShoeboxData,
+    sbQueryRules :: [QueryRule] 
+    } deriving (Show, Read, Eq, Data, Typeable, Generic)
+
+instance ToJSON Shoebox
+instance FromJSON Shoebox
+
+newShoebox :: Shoebox
+newShoebox = let
+    sbData = newShoeboxData
+    queryRules = [
+        QueryRule textDbId txTag mbTag [
+            (parsingDbId, mbTag, [BreakFlag]),
+            (lexDbId, leTag, []),
+            (suffixDbId, leTag, [])
+            ],
+        QueryRule textDbId mbTag glTag [
+            (lexDbId, meTag, []),
+            (suffixDbId, meTag, [])
+            ]
         ]
-    ]
+    in Shoebox sbData queryRules
 
+    
 
 {-
+    Interlinearisation ist ein Workflow, in dem sich Nutzereingaben, DB lookups und DB Queries abwechseln.
+    Als Interface vermute ich mal eine Monade mit State, ...
+
+    Damit die Interaktion zwischen Backend/Frontend nicht mit State belastet ist, empfiehlt sich ein 
+    REST Stateless Modell: d.h. der komplette Workflow Status wird als Antwort nach draussen gegeben, mit
+    dem nächsten Schritt als Request, Frontend kann dann anzeigen, nachfragen, ... und in der nächsten Anfrage den
+    State eins weiter toggeln.
+
+-- |QueryResult, can be a finished data row, or a list of either result or empty
+data QueryResult = QRFinal T.Text | QRPartial [Maybe T.Text] deriving (Show, Read, Eq, Data, Typeable, Generic)
+
+-- |First Query step, take an entry and a source tag and query the target tag
+queryRuleStep :: SBDataRow -> Shoebox -> Either SbError QueryResult
+queryRuleStep row sb@(Shoebox rules) = if (dbEntryType . sbdrEntry $ row) /= SbtText 
+    then Left SBErrorQueryRuleInputNotText
+    else let
+        rule = find (\r -> qrSourceTag r == sbdrTag row) rules
+        case rule of
+            Nothing -> SBErrorQueryRuleNoRule
+            Just rule' -> let
+
+    
+
+
 
 breakTX :: Text -> ShoeSegmentationDB -> [MorphemeBreak]
 breakTX textEl segmentationDB =
