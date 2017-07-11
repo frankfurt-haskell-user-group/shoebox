@@ -41,6 +41,7 @@ writeLineConsole :: T.Text -> IO ()
 writeLineConsole t = do
   BS.hPut stdout (EN.encodeUtf8 t)
   BS.hPut stdout "\n"
+  hFlush stdout
   return ()
 
 showT :: Show a => a -> T.Text
