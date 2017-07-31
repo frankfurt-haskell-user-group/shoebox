@@ -11,7 +11,9 @@ import Data.Monoid (mempty)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
+import Halogen.HTML.Core (AttrName(..))
 import Halogen.HTML.Properties as HP
+import Halogen.HTML.Properties.ARIA as HA
 import Network.HTTP.Affjax (AJAX)
 import Node.ChildProcess (ChildProcess, CHILD_PROCESS, stdout, stdin)
 import Node.Stream (write, read, uncork, onData)
@@ -19,6 +21,10 @@ import Node.Encoding (Encoding(..))
 import Data.Maybe
 import Control.Monad.Eff.Class
 import Node.Buffer (fromString, toString, BUFFER)
+import Halogen.HTML (ClassName(..))
+import Bootstrap as HB
+
+import Api
 
 type Word = String
 type Choice = Array
@@ -50,8 +56,54 @@ ui cpIn = H.component
                    }
 
     render :: State -> H.ComponentHTML Query
-    render st = HH.div_
-        [ HH.h1_ [ HH.text "Shoebox" ]
+    render st = HH.div [HP.class_ (ClassName "container")] [  
+
+    -- outer container, fluid (see bootstrap)
+      -- top row 
+      HH.div [HP.class_ (ClassName "row")] [
+        HH.div [HP.class_ (ClassName "col-sm-12")] [
+          HH.h3_ [ HH.small_ [HH.text "selected database: " ], HH.text "frz" ]
+        ]
+      ],
+
+      -- middle row
+      HH.div [HP.class_ HB.row] [
+        HH.div [HP.class_ HB.colSm3] [   -- menu section
+          HH.div [HP.class_ (ClassName "btn-group-vertical")] [
+           HH.button
+              [ HP.disabled $ st.word == mempty
+              , HE.onClick $ HE.input_ QueryWord
+              ]
+              [ HH.text "Send " , HH.span [ HP.class_ (ClassName "glyphicon glyphicon-send")] [] ]
+          , HH.button
+              [ HP.disabled $ st.word == mempty
+              , HE.onClick $ HE.input_ QueryWord
+              ]
+              [ HH.text "Send " , HH.span [ HP.class_ (ClassName "glyphicon glyphicon-send")] [] ]
+          ]
+        ],
+
+        HH.div [HP.class_ HB.colSm9] [   -- content section
+
+        HH.div [HP.class_ (ClassName "dropdown")] [
+          HH.button [ HP.class_ (ClassName "btn btn-secondary dropdown-toggle"), 
+                      HP.attr (AttrName "type") "button", 
+                      HP.attr (AttrName "id") "dropdownMenuButton" ,
+                      HP.attr (AttrName "data-toggle") "dropdown", 
+                      HP.attr (AttrName "aria-haspopup") "true", 
+                      HP.attr (AttrName "aria-expanded") "false"
+                      ] 
+                      [
+                        HH.text "drop this" 
+                      ]
+          , HH.ul [HP.class_ HB.dropdownMenu, HP.attr (AttrName "aria-labelledby") "dropdownMenuButton"] [
+              HH.li [] [ HH.a [HP.class_ (ClassName "dropdown-item"), HP.attr (AttrName "href") "#"] [HH.text "wow"] ] ,
+              HH.li [] [ HH.a [HP.class_ (ClassName "dropdown-item"), HP.attr (AttrName "href") "#"] [HH.text "wow2"] ] 
+              ]
+          ]
+
+        , HH.p [][]
+      
         , HH.input
             [ HP.value st.word
             , HE.onValueInput $ HE.input UpdateWord
@@ -60,25 +112,31 @@ ui cpIn = H.component
             [ HP.disabled $ st.word == mempty
             , HE.onClick $ HE.input_ QueryWord
             ]
-            [ HH.text "Send Command" ]
+            [ HH.text "Send " , HH.span [ HP.class_ (ClassName "glyphicon glyphicon-send")] [] ]
         , HH.p_ [ HH.text st.segmentation ]
         , HH.p_ [ HH.text st.gloss ]
+
         ]
+      ],
+
+      -- bottom row 
+      HH.div [HP.class_ (ClassName "row")] [
+        HH.div [HP.class_ (ClassName "col-sm-12")] [
+          HH.text "Shoebox (c) 2017 - Frankfurt Haskell User Group"
+        ]
+      ]
+      ] -- outer container
 
     eval :: Query ~> H.ComponentDSL State Query Void (Aff (exception :: EXCEPTION, cp::CHILD_PROCESS, buffer::BUFFER  | eff))
     eval (UpdateWord word next) = do
         H.modify $ _ { word = word }
         pure next
     eval (QueryWord next) = do
-        word <- H.gets _.word
-        cpIn' <- H.gets _.process
-        bout <- H.liftEff (fromString ("{\"cmd\" : \"" <> word <> "\"}\n") UTF8)
-        _ <- H.liftEff $ write (stdin cpIn') bout (pure unit)
-        b <- H.liftAff $ makeAff (\error success -> onData (stdout cpIn') success)
-        s <- H.liftEff $ toString UTF8 b 
+        cmd <- H.gets _.word
+        pr <- H.gets _.process
+        s <- H.liftAff $ queryAPI pr cmd
         H.modify $ _ {gloss = s}
         pure next
-
 
       {-
         word <- H.gets _.word

@@ -1,19 +1,28 @@
-module Api
-    ( Morpheme(..)
-    , Lemma
-    , Prefix
-    , Suffix
-    , queryDb
-    ) where
+module Api where
 
 import Prelude
-import Control.Monad.Aff (Aff)
+import Control.Monad.Aff (Aff, makeAff)
 import Control.Monad.Eff.Exception (error)
 import Control.Monad.Error.Class (throwError)
 import Data.Argonaut (class DecodeJson, Json, (.?), decodeJson)
 import Data.Either (Either(Left), either)
+import Node.Buffer (fromString, toString, BUFFER)
+import Node.ChildProcess (ChildProcess, CHILD_PROCESS, stdout, stdin)
+import Halogen as H
+import Node.Encoding (Encoding(..))
+import Control.Monad.Eff.Exception (EXCEPTION)
+import Node.Stream (write, read, uncork, onData)
 import Network.HTTP.Affjax (AJAX, post)
 
+queryAPI :: forall eff. ChildProcess -> String -> Aff (exception :: EXCEPTION, cp::CHILD_PROCESS, buffer::BUFFER | eff) String  
+queryAPI pr cmd = do
+    bout <- H.liftEff (fromString ("{\"cmd\" : \"" <> cmd <> "\"}\n") UTF8)
+    _ <- H.liftEff $ write (stdin pr) bout (pure unit)
+    b <- makeAff (\error success -> onData (stdout pr) success)
+    s <- H.liftEff $ toString UTF8 b 
+    pure s
+
+{-
 type MorphemeBreaks = Array Morpheme
 type Lemma = String
 type Meaning = String
@@ -62,4 +71,4 @@ queryDb key = do
     either (throwError <<< error) pure $ decodeDbEntries res.response
   where
     url = "http://localhost:3000/api/query/word"
-
+-}

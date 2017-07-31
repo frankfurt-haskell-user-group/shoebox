@@ -14,6 +14,7 @@
     "purescript-argonaut": "^3.0.0",
     "purescript-lists": "^4.7.0",
     "purescript-node-streams": "^3.1.0",
-    "purescript-node-child-process": "^4.0.0"
+    "purescript-node-child-process": "^4.0.0",
+    "purescript-halogen-bootstrap": "^6.0.0"
   }
 }
