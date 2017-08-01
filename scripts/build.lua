@@ -17,6 +17,17 @@ local function aioString()
 	end
 end
 
+local function osSep()
+	o, a = getOS()
+	if o == "windows" then
+		return "\\"	
+	elseif o == "darwin" then
+		return "/"	
+	elseif o == "linux" then
+		return "/"	
+	end
+end
+
 local function buildFrontend()
 	lfs.chdir(glue.bin .. "/../frontend")
 --	os.execute("bower update")
@@ -30,22 +41,22 @@ end
 
 local function buildBackend()
 	lfs.chdir(glue.bin .. "/../backend")
-	os.execute("..\\" .. aioString() .. " http://www.hgamer3d.org/tools/Stack.0617 install --local-bin-path .")
+	os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Stack.0617 install --local-bin-path .")
 end
 
 local function testBackend()
 	lfs.chdir(glue.bin .. "/../backend")
-	os.execute("..\\" .. aioString() .. " http://www.hgamer3d.org/tools/Stack.0617 test")
+	os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Stack.0617 test")
 end
 
 local function initBackend()
 	lfs.chdir(glue.bin .. "/../backend")
-	os.execute("..\\" .. aioString() .. " http://www.hgamer3d.org/tools/Stack.0617 setup --resolver lts-8.20")
+	os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Stack.0617 setup --resolver lts-8.20")
 end
 
 local function runApp()
 	lfs.chdir(glue.bin .. "/..")
-	os.execute("electron frontend\\dist\\index.html")
+	os.execute("electron frontend" .. osSep() .. "dist" .. osSep() .. "index.html")
 end
 
 local function helpText()

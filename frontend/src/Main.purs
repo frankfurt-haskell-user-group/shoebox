@@ -12,12 +12,17 @@ import Data.Maybe
 import Node.Buffer (BUFFER)
 import Node.Stream (writeString, read)
 import Node.Encoding (Encoding(..))
+import Node.Platform (Platform(..))
+import Node.Process (platform, PROCESS)
 
 import GlossingPage (ui)
 
-main :: forall eff. Eff (HalogenEffects (ajax :: AJAX, console::CONSOLE, cp::CHILD_PROCESS, buffer::BUFFER )) Unit
+main :: forall eff. Eff (HalogenEffects (process::PROCESS, ajax :: AJAX, console::CONSOLE, cp::CHILD_PROCESS, buffer::BUFFER )) Unit
 main = do
-    cp <- spawn "backend/shoeB.exe" [] defaultSpawnOptions
+    let pf = platform 
+    cp <- if pf /= Win32 
+      then spawn "backend/shoeB" [] defaultSpawnOptions
+      else spawn "backend/shoeB.exe" [] defaultSpawnOptions
     onExit cp (\e -> log "child process exited!\n") 
     runHalogenAff $ awaitBody >>= runUI (ui cp) unit
 
