@@ -30,10 +30,17 @@ type Choice = Array
 type Sequence = Array
 type Gloss = String
 
+data SelectedTab = TabInterL
+                   | TabQuery
+                   | TabTest
+
+derive instance eqSelectedTab :: Eq SelectedTab
+
 type State = { word         :: Word
              , segmentation :: String
              , gloss        :: String
              , process :: ChildProcess
+             , tab :: SelectedTab
              }
 
 data Query a = UpdateWord Word a
@@ -42,6 +49,7 @@ data Query a = UpdateWord Word a
              | SaveDatabase a
              | NewDatabase a
              | RemoveDatabase a
+             | SetTab SelectedTab a
 
 ui :: forall eff. ChildProcess -> H.Component HH.HTML Query Unit Void (Aff (exception :: EXCEPTION, cp::CHILD_PROCESS, buffer::BUFFER  | eff))
 ui cpIn = H.component
@@ -56,90 +64,108 @@ ui cpIn = H.component
                    , segmentation : ""
                    , gloss        : ""
                    , process : cpIn
+                   , tab : TabTest
                    }
 
     render :: State -> H.ComponentHTML Query
     render st =  
 
-      -- outer container, fluid (see bootstrap)
-      HH.div [HP.class_ (ClassName "container")] [  
+      let activeProp t1 t2 = if t1 == t2 
+            then [HP.classes [HB.navTabActive]] 
+            else []
+      in
 
-        -- top row 
-        HH.div [HP.classes [HB.row, (ClassName "top-row")]] [
-          -- left side, db text
-          HH.div [HP.classes [HB.colSm6]] [
-            HH.h3_ [ HH.small_ [ HH.text "selected database: " ], HH.text "frz"]
-          ]
+        -- outer container, fluid (see bootstrap)
+        HH.div [HP.class_ (ClassName "container")] [  
 
-          , HH.div [HP.classes [HB.colSm6, (ClassName "file-buttons")]] [
-                  HH.button
-                    [ HP.classes [HB.buttonPrimary, HB.buttonSmall]
-                      , HE.onClick $ HE.input_ OpenDatabase
-                    ]
-                    [ HH.text "Open " , HH.span [ HP.classes [HB.glyphiconOpen] ] [] ]
-                  , HH.text " "
-                  , HH.button
-                    [ HP.classes [HB.buttonDefault, HB.buttonSmall]
-                      , HE.onClick $ HE.input_ SaveDatabase
-                    ]
-                    [ HH.text "Save " , HH.span [ HP.classes [HB.glyphiconSave] ] [] ]
-                  , HH.text " "
-                  , HH.button
-                    [ HP.classes [HB.buttonDefault, HB.buttonSmall]
-                      , HE.onClick $ HE.input_ NewDatabase
-                    ]
-                    [ HH.text "New " , HH.span [ HP.classes [HB.glyphiconPlusSign] ] [] ]
-                  , HH.text " "
-                  , HH.button
-                    [ HP.classes [HB.buttonDanger, HB.buttonSmall]
-                      , HE.onClick $ HE.input_ RemoveDatabase
-                    ]
-                    [ HH.text "Delete " , HH.span [ HP.classes [HB.glyphiconRemoveSign] ] [] ]
-          ]
-
-        ],
-
-        -- middle row
-        HH.div [HP.classes [HB.row, (ClassName "middle-row")]] [
-          HH.div [HP.classes [HB.colSm12]] [
-
-            -- nav tabs
-            HH.ul [HP.classes [HB.navTabs]] [
-              -- li items are the content ones
-              HH.li [] [
-                HH.a [HP.href "#"] [
-                  HH.text "Inter-L"
-                  ]
-              ]
-              -- li items are the content ones
-              , HH.li [] [
-                HH.a [HP.href "#"] [
-                  HH.text "Query"
-                  ]
-              ]
-              -- li items are the content ones
-              , HH.li [HP.classes [HB.navTabActive]] [
-                HH.a [HP.href "#"] [
-                  HH.text "Test"
-                  ]
-              ]
+          -- top row 
+          HH.div [HP.classes [HB.row, (ClassName "top-row")]] [
+            -- left side, db text
+            HH.div [HP.classes [HB.colSm6]] [
+              HH.h3_ [ HH.small_ [ HH.text "selected database: " ], HH.text "frz"]
             ]
 
-          -- content
-
+            , HH.div [HP.classes [HB.colSm6, (ClassName "file-buttons")]] [
+                    HH.button
+                      [ HP.classes [HB.buttonPrimary, HB.buttonSmall]
+                        , HE.onClick $ HE.input_ OpenDatabase
+                      ]
+                      [ HH.text "Open " , HH.span [ HP.classes [HB.glyphiconOpen] ] [] ]
+                    , HH.text " "
+                    , HH.button
+                      [ HP.classes [HB.buttonDefault, HB.buttonSmall]
+                        , HE.onClick $ HE.input_ SaveDatabase
+                      ]
+                      [ HH.text "Save " , HH.span [ HP.classes [HB.glyphiconSave] ] [] ]
+                    , HH.text " "
+                    , HH.button
+                      [ HP.classes [HB.buttonDefault, HB.buttonSmall]
+                        , HE.onClick $ HE.input_ NewDatabase
+                      ]
+                      [ HH.text "New " , HH.span [ HP.classes [HB.glyphiconPlusSign] ] [] ]
+                    , HH.text " "
+                    , HH.button
+                      [ HP.classes [HB.buttonDanger, HB.buttonSmall]
+                        , HE.onClick $ HE.input_ RemoveDatabase
+                      ]
+                      [ HH.text "Delete " , HH.span [ HP.classes [HB.glyphiconRemoveSign] ] [] ]
+            ]
 
           ]
-        ],
 
-        -- bottom row
-        HH.div [HP.classes [HB.row, (ClassName "bottom-row")]] [
-          HH.div [HP.classes [HB.colSm12]] [
-            HH.text "Shoebox (c) 2017 - Frankfurt Haskell User Group"
+          -- middle row
+          , HH.div [HP.classes [HB.row, (ClassName "middle-row")]] [
+              HH.div [HP.classes [HB.colSm12]] [
+
+                -- nav tabs
+                HH.ul [HP.classes [HB.navTabs]] [
+                  -- li items are the content ones
+                  HH.li (activeProp TabInterL st.tab) [
+                    HH.a [HP.href "#", HE.onClick (HE.input_ (SetTab TabInterL))] [
+                      HH.text "Inter-L"
+                      ]
+                  ]
+                  -- li items are the content ones
+                  , HH.li (activeProp TabQuery st.tab) [
+                    HH.a [HP.href "#", HE.onClick (HE.input_ (SetTab TabQuery))] [
+                      HH.text "Query"
+                      ]
+                  ]
+                  -- li items are the content ones
+                  , HH.li (activeProp TabTest st.tab) [
+                    HH.a [HP.href "#", HE.onClick (HE.input_ (SetTab TabTest))] [
+                      HH.text "Test"
+                      ]
+                  ]
+                ]
+
+            -- content
+            , case st.tab of
+              TabInterL -> 
+                -- interlinearisation pane
+                HH.h3_ [ HH.small_ [ HH.text "Interlinearization Pane"]]
+
+              TabQuery -> 
+                -- query pane
+                HH.h3_ [ HH.small_ [ HH.text "Query Pane"]]
+
+              TabTest -> 
+                -- test pane
+                HH.h3_ [ HH.small_ [ HH.text "Test Pane"]]
+
+
+            ]
           ]
-        ]
+
+          -- bottom row
+          , HH.div [HP.classes [HB.row, (ClassName "bottom-row")]] [
+            HH.div [HP.classes [HB.colSm12]] [
+              HH.text "Shoebox (c) 2017 - Frankfurt Haskell User Group"
+            ]
+          ]
 
 
-      ] -- outer container
+        ] -- outer container
 
     eval :: Query ~> H.ComponentDSL State Query Void (Aff (exception :: EXCEPTION, cp::CHILD_PROCESS, buffer::BUFFER  | eff))
     eval (UpdateWord word next) = do
@@ -161,6 +187,10 @@ ui cpIn = H.component
 --        H.liftAff $ log("open database pressed")
         pure next
     eval (RemoveDatabase next) = do
+--        H.liftAff $ log("open database pressed")
+        pure next
+    eval (SetTab newT next) = do
+        H.modify $ _ {tab = newT}
 --        H.liftAff $ log("open database pressed")
         pure next
 
