@@ -159,6 +159,13 @@ dropdownMenu = ClassName "dropdown-menu"
 caret :: ClassName
 caret = ClassName "caret"
 
+formGroup :: ClassName
+formGroup = ClassName "form-group"
+
+formFor = attr (AttrName "for")
+
+formControl :: ClassName
+formControl = ClassName "form-control"
 {-
 
       HH.div [HP.class_ HB.row] [

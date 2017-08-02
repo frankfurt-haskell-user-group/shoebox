@@ -41,6 +41,8 @@ type State = { word         :: Word
              , gloss        :: String
              , process :: ChildProcess
              , tab :: SelectedTab
+             , testCommand :: String
+             , testResult :: String
              }
 
 data Query a = UpdateWord Word a
@@ -50,6 +52,8 @@ data Query a = UpdateWord Word a
              | NewDatabase a
              | RemoveDatabase a
              | SetTab SelectedTab a
+             | UpdateTestCommand String a
+             | RunTestCommand a  
 
 ui :: forall eff. ChildProcess -> H.Component HH.HTML Query Unit Void (Aff (exception :: EXCEPTION, cp::CHILD_PROCESS, buffer::BUFFER  | eff))
 ui cpIn = H.component
@@ -65,6 +69,8 @@ ui cpIn = H.component
                    , gloss        : ""
                    , process : cpIn
                    , tab : TabTest
+                   , testCommand : ""
+                   , testResult : ""
                    }
 
     render :: State -> H.ComponentHTML Query
@@ -143,15 +149,29 @@ ui cpIn = H.component
             , case st.tab of
               TabInterL -> 
                 -- interlinearisation pane
-                HH.h3_ [ HH.small_ [ HH.text "Interlinearization Pane"]]
+                HH.h3_ [ HH.small_ [ HH.text "Interlinearization Panel"]]
 
               TabQuery -> 
                 -- query pane
-                HH.h3_ [ HH.small_ [ HH.text "Query Pane"]]
+                HH.h3_ [ HH.small_ [ HH.text "Query Panel"]]
 
-              TabTest -> 
+              TabTest -> HH.div [] [ 
                 -- test pane
-                HH.h3_ [ HH.small_ [ HH.text "Test Pane"]]
+                HH.h3_ [ HH.small_ [ HH.text "Test Panel"]]
+                , HH.text "you can try the commands: 'current-db', 'save-db', and 'available-dbs'.", HH.p_ []
+                -- input form, cmd
+                , HH.div [HP.classes [HB.formGroup]] [
+                  HH.label [HB.formFor "command"] [HH.text "Command:"]
+                  , HH.input [HE.onValueChange (HE.input UpdateTestCommand), HP.classes [HB.formControl], HP.id_ "command"] 
+                ]
+                , HH.p_ []
+                , HH.button
+                  [ HP.classes [HB.buttonPrimary]
+                    , HE.onClick $ HE.input_ RunTestCommand
+                  ]
+                  [ HH.text "Execute" ] 
+                , HH.p_ [], HH.text "Test Result:", HH.p_ [], HH.text st.testResult
+                ]
 
 
             ]
@@ -192,6 +212,16 @@ ui cpIn = H.component
     eval (SetTab newT next) = do
         H.modify $ _ {tab = newT}
 --        H.liftAff $ log("open database pressed")
+        pure next
+    eval (UpdateTestCommand newC next) = do
+        H.modify $ _ {testCommand = newC}
+--        H.liftAff $ log("open database pressed")
+        pure next
+    eval (RunTestCommand next) = do
+        cmd <- H.gets _.testCommand
+        pr <- H.gets _.process
+        s <- H.liftAff $ queryAPI pr cmd
+        H.modify $ _ {testResult = s}
         pure next
 
       {-
