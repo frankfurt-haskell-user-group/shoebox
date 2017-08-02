@@ -115,6 +115,11 @@ glyphiconRemoveSign :: ClassName
 glyphiconRemoveSign = ClassName "glyphicon glyphicon-remove-sign"
 
 
+navTabs :: ClassName
+navTabs = ClassName "nav nav-tabs"
+
+navTabActive :: ClassName
+navTabActive = ClassName "active"
 
 
 

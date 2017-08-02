@@ -103,6 +103,31 @@ ui cpIn = H.component
         HH.div [HP.classes [HB.row, (ClassName "middle-row")]] [
           HH.div [HP.classes [HB.colSm12]] [
 
+            -- nav tabs
+            HH.ul [HP.classes [HB.navTabs]] [
+              -- li items are the content ones
+              HH.li [] [
+                HH.a [HP.href "#"] [
+                  HH.text "Inter-L"
+                  ]
+              ]
+              -- li items are the content ones
+              , HH.li [] [
+                HH.a [HP.href "#"] [
+                  HH.text "Query"
+                  ]
+              ]
+              -- li items are the content ones
+              , HH.li [HP.classes [HB.navTabActive]] [
+                HH.a [HP.href "#"] [
+                  HH.text "Test"
+                  ]
+              ]
+            ]
+
+          -- content
+
+
           ]
         ],
 
