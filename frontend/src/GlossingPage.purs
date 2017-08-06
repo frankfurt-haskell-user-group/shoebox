@@ -4,7 +4,8 @@ module GlossingPage
   ) where
 
 import Prelude
-import Control.Monad.Aff (Aff)
+import Data.Time.Duration (Milliseconds(..))
+import Control.Monad.Aff (Aff, delay)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Data.Maybe (Maybe(Nothing))
 import Data.Monoid (mempty)
@@ -36,24 +37,35 @@ data SelectedTab = TabInterL
 
 derive instance eqSelectedTab :: Eq SelectedTab
 
-type State = { word         :: Word
-             , segmentation :: String
-             , gloss        :: String
-             , process :: ChildProcess
+type State = { 
+
+              -- child process, database backend
+             process :: ChildProcess
+
+              -- database info
+              , dbFile :: String
+
+              -- status
+              , statusLine :: String
+
+              -- tab currently active
              , tab :: SelectedTab
+
+
+              -- test tab commands
              , testCommand :: String
              , testResult :: String
+
              }
 
-data Query a = UpdateWord Word a
-             | QueryWord a
-             | OpenDatabase a
+data Query a = OpenDatabase a
              | SaveDatabase a
              | NewDatabase a
              | RemoveDatabase a
              | SetTab SelectedTab a
              | UpdateTestCommand String a
              | RunTestCommand a  
+             | MessageStatus String a
 
 ui :: forall eff. ChildProcess -> H.Component HH.HTML Query Unit Void (Aff (exception :: EXCEPTION, cp::CHILD_PROCESS, buffer::BUFFER  | eff))
 ui cpIn = H.component
@@ -64,10 +76,10 @@ ui cpIn = H.component
     }
   where
     initialState :: State
-    initialState = { word         : ""
-                   , segmentation : ""
-                   , gloss        : ""
-                   , process : cpIn
+    initialState = { 
+                   process : cpIn
+                   , dbFile : "frz"
+                   , statusLine : ""
                    , tab : TabTest
                    , testCommand : ""
                    , testResult : ""
@@ -88,28 +100,39 @@ ui cpIn = H.component
           HH.div [HP.classes [HB.row, (ClassName "top-row")]] [
             -- left side, db text
             HH.div [HP.classes [HB.colSm6]] [
-              HH.h3_ [ HH.small_ [ HH.text "selected database: " ], HH.text "frz"]
+              HH.h3_ [ HH.small_ [ HH.text "selected database: " ], HH.text st.dbFile]
             ]
 
             , HH.div [HP.classes [HB.colSm6, (ClassName "file-buttons")]] [
+                    -- Open Button
                     HH.button
                       [ HP.classes [HB.buttonPrimary, HB.buttonSmall]
-                        , HE.onClick $ HE.input_ OpenDatabase
+                        , HB.dataToggle "modal", HB.dataTarget "#modalIdOpenDB" -- HE.onClick $ HE.input_ OpenDatabase
                       ]
                       [ HH.text "Open " , HH.span [ HP.classes [HB.glyphiconOpen] ] [] ]
                     , HH.text " "
+                    -- Save Button
                     , HH.button
                       [ HP.classes [HB.buttonDefault, HB.buttonSmall]
                         , HE.onClick $ HE.input_ SaveDatabase
                       ]
                       [ HH.text "Save " , HH.span [ HP.classes [HB.glyphiconSave] ] [] ]
                     , HH.text " "
+                    -- Save As Button
+                    , HH.button
+                      [ HP.classes [HB.buttonDefault, HB.buttonSmall]
+                        , HE.onClick $ HE.input_ SaveDatabase
+                      ]
+                      [ HH.text "Save As " , HH.span [ HP.classes [HB.glyphiconSave] ] [] ]
+                    , HH.text " "
+                    -- New Button
                     , HH.button
                       [ HP.classes [HB.buttonDefault, HB.buttonSmall]
                         , HE.onClick $ HE.input_ NewDatabase
                       ]
                       [ HH.text "New " , HH.span [ HP.classes [HB.glyphiconPlusSign] ] [] ]
                     , HH.text " "
+                    -- Delete Button
                     , HH.button
                       [ HP.classes [HB.buttonDanger, HB.buttonSmall]
                         , HE.onClick $ HE.input_ RemoveDatabase
@@ -168,7 +191,7 @@ ui cpIn = H.component
                 , HH.button
                   [ HP.classes [HB.buttonPrimary]
                     , HE.onClick $ HE.input_ RunTestCommand
-                  ]
+                  ] 
                   [ HH.text "Execute" ] 
                 , HH.p_ [], HH.text "Test Result:", HH.p_ [], HH.text st.testResult
                 ]
@@ -180,48 +203,57 @@ ui cpIn = H.component
           -- bottom row
           , HH.div [HP.classes [HB.row, (ClassName "bottom-row")]] [
             HH.div [HP.classes [HB.colSm12]] [
-              HH.text "Shoebox (c) 2017 - Frankfurt Haskell User Group"
+              if st.statusLine == ""
+                then HH.text "Shoebox (c) 2017 - Frankfurt Haskell User Group"
+                else HH.div_ [HH.b_ [HH.text "Status: "], HH.text st.statusLine]
             ]
           ]
 
 
+        , HB.modal "modalIdOpenDB" "My OpenDB Title" (HB.group ["one", "two"] Nothing ) (HH.text "")
         ] -- outer container
 
+
     eval :: Query ~> H.ComponentDSL State Query Void (Aff (exception :: EXCEPTION, cp::CHILD_PROCESS, buffer::BUFFER  | eff))
-    eval (UpdateWord word next) = do
-        H.modify $ _ { word = word }
-        pure next
-    eval (QueryWord next) = do
-        cmd <- H.gets _.word
-        pr <- H.gets _.process
-        s <- H.liftAff $ queryAPI pr cmd
-        H.modify $ _ {gloss = s}
-        pure next
     eval (OpenDatabase next) = do
 --        H.liftAff $ log("open database pressed")
         pure next
+
     eval (SaveDatabase next) = do
---        H.liftAff $ log("open database pressed")
+        pr <- H.gets _.process
+        s <- H.liftAff $ queryAPI pr "save-db"
+        _ <- eval (MessageStatus s next)
         pure next
+
     eval (NewDatabase next) = do
 --        H.liftAff $ log("open database pressed")
         pure next
+
     eval (RemoveDatabase next) = do
 --        H.liftAff $ log("open database pressed")
         pure next
+
     eval (SetTab newT next) = do
         H.modify $ _ {tab = newT}
 --        H.liftAff $ log("open database pressed")
         pure next
+
     eval (UpdateTestCommand newC next) = do
         H.modify $ _ {testCommand = newC}
 --        H.liftAff $ log("open database pressed")
         pure next
+
     eval (RunTestCommand next) = do
         cmd <- H.gets _.testCommand
         pr <- H.gets _.process
         s <- H.liftAff $ queryAPI pr cmd
         H.modify $ _ {testResult = s}
+        pure next
+        
+    eval (MessageStatus msg next) = do
+        H.modify $ _ {statusLine = msg}
+        H.liftAff $ delay (Milliseconds 3000.0) 
+        H.modify $ _ {statusLine = ""}
         pure next
 
       {-

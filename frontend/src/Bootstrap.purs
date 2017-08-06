@@ -1,9 +1,17 @@
 module Bootstrap where
 
+import Data.List 
+import Prelude
+
 import Halogen.HTML (ClassName(..))
 import Halogen.HTML.Core (AttrName(..))
 import Halogen.HTML.Properties (attr)
 import Data.Maybe (Maybe(..))
+
+import Halogen.HTML as HH
+import Halogen.HTML.Events as HE
+import Halogen.HTML.Properties as HP
+import Halogen.HTML.Properties.ARIA as HA
 
 container :: ClassName
 container = ClassName "container"
@@ -234,8 +242,78 @@ formControl = ClassName "form-control"
 
 
 
+-- Modal Dialogs
+modalDialog :: ClassName
+modalDialog = ClassName "modal-dialog"
+
+modalContent :: ClassName
+modalContent = ClassName "modal-content"
+
+modalHeader :: ClassName
+modalHeader = ClassName "modal-header"
+
+modalFooter :: ClassName
+modalFooter = ClassName "modal-footer"
+
+modalFade :: ClassName
+modalFade = ClassName "modal fade"
+
+modalTitle :: ClassName
+modalTitle = ClassName "modal-title"
+
+close :: ClassName
+close = ClassName "close"
+
+
+dataToggle = attr (AttrName "data-toggle") 
+dataTarget = attr (AttrName "data-target") 
+dataDismiss = attr (AttrName "data-dismiss") 
+
+role = attr (AttrName "role") 
+
+modal modalId myTitle myContent myFooter = 
+    HH.div [HP.class_ modalFade, HP.id_ modalId, role "dialog"] [
+        HH.div [HP.class_ modalDialog] [
+            HH.div [HP.class_ modalHeader] [
+                HH.button [HP.class_ close, dataDismiss "modal"] [HH.text "×"]
+                , HH.h4 [HP.class_ modalTitle] [HH.text myTitle]
+            ]
+            , HH.div [HP.class_ modalContent] [
+                myContent
+            ]
+            , HH.div [HP.class_ modalFooter] [
+                myFooter
+            ]
+        ]
+    ]
 
 
 
+-- Alerts
 
+alertSuccess :: ClassName
+alertSuccess = ClassName "alert alert-success"
 
+alertInfo :: ClassName
+alertInfo = ClassName "alert alert-info"
+
+alertWarning :: ClassName
+alertWarning = ClassName "alert alert-warning"
+
+alertDanger :: ClassName
+alertDanger = ClassName "alert alert-danger"
+
+-- List Groups
+
+listGroup :: ClassName
+listGroup = ClassName "list-group"
+
+listGroupItem :: ClassName
+listGroupItem = ClassName "list-group-item list-group-item-action"
+
+type_ = attr (AttrName "type")
+
+group :: forall a b. Array String -> Maybe Int -> HH.HTML a b 
+group list active = HH.div [HP.class_ listGroup] (
+    (\l -> HH.button [HP.class_ listGroupItem, type_ "button"] [HH.text l] ) <$> list
+)
