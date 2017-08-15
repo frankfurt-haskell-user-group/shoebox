@@ -4,6 +4,8 @@ module GlossingPage
   ) where
 
 import Prelude
+import Data.Tuple
+import Data.Either (Either(..))
 import Data.Time.Duration (Milliseconds(..))
 import Control.Monad.Aff (Aff, delay)
 import Control.Monad.Eff.Exception (EXCEPTION)
@@ -23,13 +25,10 @@ import Data.Maybe (Maybe(..))
 import Node.Buffer (fromString, toString, BUFFER)
 import Halogen.HTML (ClassName(..))
 import Bootstrap as HB
+import Data.Argonaut (decodeJson, jsonParser)
 
 import Api (queryAPI)
 
-type Word = String
-type Choice = Array
-type Sequence = Array
-type Gloss = String
 
 data SelectedTab = TabInterL
                    | TabQuery
@@ -45,6 +44,8 @@ type State = {
               -- database info
               , dbFile :: String
 
+              , currentDBs :: Array String
+
               -- status
               , statusLine :: String
 
@@ -58,6 +59,11 @@ type State = {
 
              }
 
+
+data ListSlot = ListSlot
+derive instance eqListSlot :: Eq ListSlot
+derive instance ordListSlot :: Ord ListSlot
+
 data Query a = OpenDatabase a
              | SaveDatabase a
              | NewDatabase a
@@ -66,26 +72,31 @@ data Query a = OpenDatabase a
              | UpdateTestCommand String a
              | RunTestCommand a  
              | MessageStatus String a
+             | HandleList HB.ListMessage a
+             | Initialize a
 
 ui :: forall eff. ChildProcess -> H.Component HH.HTML Query Unit Void (Aff (exception :: EXCEPTION, cp::CHILD_PROCESS, buffer::BUFFER  | eff))
-ui cpIn = H.component
+ui cpIn = H.lifecycleParentComponent
     { initialState : const initialState
     , render
     , eval
     , receiver : const Nothing
+    , initializer: Just (H.action Initialize)
+    , finalizer: Nothing
     }
   where
     initialState :: State
     initialState = { 
                    process : cpIn
                    , dbFile : "frz"
+                   , currentDBs : []
                    , statusLine : ""
                    , tab : TabTest
                    , testCommand : ""
                    , testResult : ""
                    }
 
-    render :: State -> H.ComponentHTML Query
+    render :: State -> H.ParentHTML Query HB.ListQuery ListSlot (Aff (exception :: EXCEPTION, cp::CHILD_PROCESS, buffer::BUFFER  | eff))
     render st =  
 
       let activeProp t1 t2 = if t1 == t2 
@@ -107,7 +118,7 @@ ui cpIn = H.component
                     -- Open Button
                     HH.button
                       [ HP.classes [HB.buttonPrimary, HB.buttonSmall]
-                        , HB.dataToggle "modal", HB.dataTarget "#modalIdOpenDB" -- HE.onClick $ HE.input_ OpenDatabase
+                        , HB.dataToggle "modal", HB.dataTarget "#modalIdOpenDB"
                       ]
                       [ HH.text "Open " , HH.span [ HP.classes [HB.glyphiconOpen] ] [] ]
                     , HH.text " "
@@ -210,93 +221,72 @@ ui cpIn = H.component
           ]
 
 
-        , HB.modal "modalIdOpenDB" "My OpenDB Title" (HB.group ["one", "two"] Nothing ) (HH.text "")
+        , HB.modal "modalIdOpenDB" "Open Database" 
+            ( HH.slot ListSlot (HB.myListGroup ["one", "two"]) unit (HE.input HandleList) ) 
+            (    
+              HH.div [] [
+                HH.button
+                  [ HP.class_ HB.buttonDefault, HB.dataDismiss "modal"] 
+                  [ HH.text "Cancel" ] 
+                , HH.button
+                  [ HP.class_ HB.buttonPrimary, HB.dataDismiss "modal", HE.onClick $ HE.input_ OpenDatabase]  
+                  [ HH.text "Open" ] 
+                ]
+            )
         ] -- outer container
 
 
-    eval :: Query ~> H.ComponentDSL State Query Void (Aff (exception :: EXCEPTION, cp::CHILD_PROCESS, buffer::BUFFER  | eff))
-    eval (OpenDatabase next) = do
---        H.liftAff $ log("open database pressed")
-        pure next
+    eval :: Query ~> H.ParentDSL State Query HB.ListQuery ListSlot Void (Aff (exception :: EXCEPTION, cp::CHILD_PROCESS, buffer::BUFFER  | eff))
+    eval message = 
+      case message of
+        (Initialize next) -> do
+          pr <- H.gets _.process
+          s <- H.liftAff $ queryAPI pr "current-dbs"
+          let a = jsonParser s
+          case a of
+            Left _ -> pure next
+            Right a' -> do
+              let ar = decodeJson a'
+              case ar of
+                Left _ -> pure next
+                Right ar' -> do
+                  H.modify $ _ {currentDBs = decodeJson ar'}
+                  pure next
 
-    eval (SaveDatabase next) = do
-        pr <- H.gets _.process
-        s <- H.liftAff $ queryAPI pr "save-db"
-        _ <- eval (MessageStatus s next)
-        pure next
+        (OpenDatabase next) -> pure next 
 
-    eval (NewDatabase next) = do
---        H.liftAff $ log("open database pressed")
-        pure next
+        (SaveDatabase next) -> do
+          pr <- H.gets _.process
+          s <- H.liftAff $ queryAPI pr "save-db"
+          H.modify $ _ {statusLine = s}
+          H.liftAff $ delay (Milliseconds 3000.0) 
+          H.modify $ _ {statusLine = ""}
+          pure next
 
-    eval (RemoveDatabase next) = do
---        H.liftAff $ log("open database pressed")
-        pure next
+        (NewDatabase next) -> pure next
+        (RemoveDatabase next) -> pure next
 
-    eval (SetTab newT next) = do
-        H.modify $ _ {tab = newT}
---        H.liftAff $ log("open database pressed")
-        pure next
+        (SetTab newT next) -> do
+          H.modify $ _ {tab = newT}
+          pure next
 
-    eval (UpdateTestCommand newC next) = do
-        H.modify $ _ {testCommand = newC}
---        H.liftAff $ log("open database pressed")
-        pure next
+        (UpdateTestCommand newc next) -> do
+          H.modify $ _ {testCommand = newc}
+          pure next
 
-    eval (RunTestCommand next) = do
-        cmd <- H.gets _.testCommand
-        pr <- H.gets _.process
-        s <- H.liftAff $ queryAPI pr cmd
-        H.modify $ _ {testResult = s}
-        pure next
+        (RunTestCommand next) -> do
+          cmd <- H.gets _.testCommand
+          pr <- H.gets _.process
+          s <- H.liftAff $ queryAPI pr cmd
+          H.modify $ _ {testResult = s}
+          pure next
         
-    eval (MessageStatus msg next) = do
-        H.modify $ _ {statusLine = msg}
-        H.liftAff $ delay (Milliseconds 3000.0) 
-        H.modify $ _ {statusLine = ""}
-        pure next
+        (HandleList (HB.Selected msg) next) -> do
+          pure next
 
-      {-
-        word <- H.gets _.word
-        result <- H.liftAff $ queryDb word
-        if result.meanings /= mempty
-           then H.modify $ _ { segmentation = showChoice result.meanings
-                             , gloss        = showChoice result.meanings
-                             }
-           else do
-               glosses <- H.liftAff $ querySegmentations result.morphemeBreaks
-               H.modify $ _ { segmentation = showSegmentations result.morphemeBreaks
-                            , gloss        = showGlosses glosses
-                            }
-        pure next
-      where
-        showChoice :: Choice String -> String
-        showChoice = intercalate "/"
+        (MessageStatus msg next) -> do
+          H.modify $ _ {statusLine = msg}
+          H.liftAff $ delay (Milliseconds 3000.0) 
+          H.modify $ _ {statusLine = ""}
+          pure next
 
-        showSeq :: Sequence String -> String
-        showSeq = intercalate "-"
-
-        showSegmentations :: Choice (Sequence Morpheme) -> String
-        showSegmentations = showChoice <<< map (showSeq <<< map showMorpheme)
-
-        showMorpheme :: Morpheme -> String
-        showMorpheme (MorphemeLemma  lemma ) = lemma
-        showMorpheme (MorphemePrefix prefix) = prefix
-        showMorpheme (MorphemeSuffix suffix) = suffix
-
-        showGlosses :: Choice (Sequence (Choice Gloss)) -> String
-        showGlosses = showChoice <<< map showSeq <<< (map $ map showChoice)
-
-        querySegmentations :: Choice (Sequence Morpheme)
-                           -> Aff (exception :: EXCEPTION, cp::CHILD_PROCESS   | eff) (Choice (Sequence (Choice Gloss)))
-        querySegmentations = sequence <<< map querySegmentation
-
-        querySegmentation :: Sequence Morpheme
-                          -> Aff (exception :: EXCEPTION, cp::CHILD_PROCESS   | eff) (Sequence (Choice Gloss))
-        querySegmentation = sequence <<< map queryGlosses
-
-        queryGlosses :: Morpheme -> Aff (exception :: EXCEPTION, cp::CHILD_PROCESS   | eff) (Choice Gloss)
-        queryGlosses (MorphemeLemma  lemma ) = _.meanings   <$> queryDb lemma
-        queryGlosses (MorphemePrefix prefix) = _.prefixTags <$> queryDb prefix
-        queryGlosses (MorphemeSuffix suffix) = _.suffixTags <$> queryDb suffix
--}

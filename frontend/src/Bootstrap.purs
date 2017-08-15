@@ -1,6 +1,9 @@
 module Bootstrap where
 
 import Data.List 
+import Data.Tuple
+import Data.Maybe (Maybe(..))
+
 import Prelude
 
 import Halogen.HTML (ClassName(..))
@@ -8,6 +11,7 @@ import Halogen.HTML.Core (AttrName(..))
 import Halogen.HTML.Properties (attr)
 import Data.Maybe (Maybe(..))
 
+import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
@@ -303,7 +307,7 @@ alertWarning = ClassName "alert alert-warning"
 alertDanger :: ClassName
 alertDanger = ClassName "alert alert-danger"
 
--- List Groups
+-- list groups
 
 listGroup :: ClassName
 listGroup = ClassName "list-group"
@@ -313,7 +317,59 @@ listGroupItem = ClassName "list-group-item list-group-item-action"
 
 type_ = attr (AttrName "type")
 
-group :: forall a b. Array String -> Maybe Int -> HH.HTML a b 
-group list active = HH.div [HP.class_ listGroup] (
-    (\l -> HH.button [HP.class_ listGroupItem, type_ "button"] [HH.text l] ) <$> list
-)
+
+-- Tab-List component
+
+type ListState = {
+    labels :: Array String,
+    selected :: Maybe String
+} 
+
+data ListQuery a
+    = ListSelect String a
+    | ListUnselect a
+    | ListSelected (Maybe String -> a)
+
+type ListInput = Unit
+
+data ListMessage = Selected (Maybe String)
+
+myListGroup :: forall m. Array String -> H.Component HH.HTML ListQuery ListInput ListMessage m
+myListGroup al = 
+    H.component 
+        {
+            initialState : const initialState,
+            render,
+            eval,
+            receiver: const Nothing
+        }
+        where
+
+        initialState :: ListState
+        initialState = { labels : al, selected : Nothing }
+
+        render :: ListState -> H.ComponentHTML ListQuery
+        render state = HH.div [HP.class_ listGroup] [HH.div []  
+                            ((\label -> let 
+                                selectedText l = HH.button [HP.classes [navTabActive, listGroupItem], type_ "button", HE.onClick (HE.input_ (ListSelect l))] [HH.text l] 
+                                unselectedText l = HH.button [HP.class_ listGroupItem, type_ "button", HE.onClick (HE.input_ (ListSelect l))] [HH.text l] 
+                                in case state.selected of
+                                    Nothing -> unselectedText label
+                                    Just s -> if s == label
+                                                then selectedText label
+                                                else unselectedText label
+                                ) <$> state.labels)
+                            ]
+
+        eval :: ListQuery ~> H.ComponentDSL ListState ListQuery ListMessage m
+        eval = case _ of
+            ListSelect label next -> do                
+                H.modify (_ {selected = Just label})
+                pure next
+            ListUnselect next -> do                
+                H.modify (_ {selected = Nothing})
+                pure next
+            ListSelected reply -> do
+                state <- H.get
+                pure (reply state.selected)
+
