@@ -36,7 +36,7 @@ end
 
 local function initFrontend()
 	lfs.chdir(glue.bin .. "/../frontend")
-	os.execute("bower update")
+	os.execute("npm install")
 end
 
 local function buildBackend()
@@ -55,8 +55,18 @@ local function initBackend()
 end
 
 local function runApp()
-	lfs.chdir(glue.bin .. "/..")
-	os.execute("electron frontend" .. osSep() .. "dist" .. osSep() .. "index.html")
+	lfs.chdir(glue.bin .. "/../frontend")
+
+	o, a = getOS()
+	if o == "windows" then
+		os.execute("xcopy /Y /Q ..\\data dist\\data\\")
+		os.execute("xcopy /Y /Q ..\\backend\\shoeB.exe dist\\backend\\")
+	end
+	-- linux version, to be done!
+
+	-- execute electron
+	lfs.chdir("dist")
+	os.execute("electron index.html")
 end
 
 local function helpText()
