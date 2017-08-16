@@ -1,0 +1,10 @@
+h1 {
+  font-family: helvetica;
+  font-weight: 200;
+}
+
+div.top-row { height: 50px; background-color: #dddddd; } 
+div.middle-row { height: calc(100vh - 90px);} 
+div.bottom-row { height: 40px; background-color: #dddddd;} 
+div.file-buttons { margin-top: 10px; } 
+div.container { height: 100vh; width: 100vw;}
