@@ -25,13 +25,13 @@ function getStatusLine(s) {
 
 function contentSwitch(t) {
   if (t.state.tab == "Test") {
-    return <TabTest cp={t.props.cp}/>
+    return <TabTest sbc={t.props.sbc}/>
   }
   if (t.state.tab == "Query") {
-    return <TabQuery cp={t.props.cp}/>
+    return <TabQuery sbc={t.props.sbc}/>
   }
   if (t.state.tab == "Inter-L") {
-    return <TabInterL cp={t.props.cp}/>
+    return <TabInterL sbc={t.props.sbc}/>
   }
 }
 
@@ -47,7 +47,7 @@ class App extends React.Component {
     return  (
   		<div className="container">
         {/* top row */} 
-        <DbSelect cp={this.props.cp} statusF={this.setStatusLine}/>
+        <DbSelect sbc={this.props.sbc} statusF={this.setStatusLine}/>
         {/* middle row */} 
   			<div className="row middle-row">
   				<div className="col-sm-12">

@@ -6,16 +6,19 @@ class TabTest extends React.Component {
   	return (
 		<div>
 			<h3><small>Test Panel</small></h3>
-			you can try the commands: "current-db", "save-db", "available-dbs"
+			you can try the commands: "current-db", "save-db", "available-dbs", "open-db [db]", "save-db-as [db]"
 			<p/>
 
 			<div className="form-group">
 				<label for="command">Command:</label>
-				<input type="text" onChange={ () => console.log($('#command')[0].value) } className="form-control" id="command"></input>
+				<input type="text" className="form-control" id="command"></input>
 			</div>
 			<p/>
 
-			<button className="btn btn-primary" onClick={ () => console.log("test clicked") }>
+			<button className="btn btn-primary" onClick={ () => {
+				var cmds = $('#command')[0].value.split(/\s+/);
+				this.props.sbc.callShoebox(cmds[0], cmds.length > 1 ? cmds[1] : null, (d) => this.setState({testResult : d.toString()}));
+			}}>
 			Execute
 			</button>
 			<p/>

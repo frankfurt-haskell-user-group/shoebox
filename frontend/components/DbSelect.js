@@ -24,29 +24,61 @@ function modalDialog(myId, myTitle, myContent, myFooter) {
 
 class DbSelect extends React.Component {
 
-	backendCmd(cmd, f) {
-		this.props.cp.stdout.once("data", function (d) {
-			let r = JSON.parse(d.toString());
-			f(r);
-		});
-		this.props.cp.stdin.write("{\"cmd\" : \"" + cmd + "\"}\n");
-	}
-
     openDatabase() {
-    	this.props.statusF("file opened: " + this.fileWhichWillBeOpened);
+    	var dbName = this.fileWhichWillBeOpened;
+		this.props.sbc.callShoebox("open-db", dbName,  
+			(d) => { this.props.statusF(d) }
+		);
+		this.setState({dbFile : dbName});
 		$('#modalIdOpenDB').modal('hide');	
     }
 
+    deleteDatabase() {
+    	// check, if we have still one to open, after we deleted the current one
+    	if (this.state.availableDBs.length >= 2) {
+    		// delete will open a new db
+			this.props.sbc.callShoebox("delete-db", this.state.dbFile,  
+				(d) => { this.props.statusF(d); }
+			);
+			setTimeout(this.getBackendState, 2000);
+		} else {
+			this.props.statusF("cannot delete last DB");
+		}
+		$('#modalIdDeleteDB').modal('hide');	
+    }
+
+    newDatabase() {
+    	var dbName = $('#newDbName')[0].value;
+		this.props.sbc.callShoebox("new-db", dbName,  
+			(d) => { this.props.statusF(d); }
+		);
+		this.setState({dbFile : dbName});
+		setTimeout(this.getBackendState, 2000);
+		$('#modalIdNewDB').modal('hide');	
+    }
+
+    saveAsDatabase() {
+    	var dbName = $('#newSaveAsDbName')[0].value;
+		this.props.sbc.callShoebox("save-db-as", dbName,  
+			(d) => { this.props.statusF(d); }
+		);
+		this.setState({dbFile : dbName});
+		setTimeout(this.getBackendState, 2000);
+		$('#modalIdSaveAsDB').modal('hide');	
+    }
+
     saveDatabase() {
-		this.backendCmd("save-db", 
+		this.props.sbc.callShoebox("save-db", null,  
 			(d) => { this.props.statusF(d); }
 		);
     }
 
 
-	getAvailableDBs() {
-		this.backendCmd("available-dbs", 
-			(d) => { this.setState({availableDBs : d}); }
+	getBackendState() {
+		this.props.sbc.callShoebox("available-dbs", null, 
+			(d) => { let s = JSON.parse(d); 
+					 console.log(s);
+					 this.setState({availableDBs : s.availableDBs, dbFile : s.dbFile }); }
 		);
 	}
 
@@ -61,9 +93,9 @@ class DbSelect extends React.Component {
 				<div className="col-sm-6 file-buttons">
 					<button className="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalIdOpenDB">Open <span className="glyphicon glyphicon-open"></span></button>
 					&nbsp;<button className="btn btn-default btn-sm" onClick={this.saveDatabase}>Save <span className="glyphicon glyphicon-save"></span></button>
-					&nbsp;<button className="btn btn-default btn-sm">Save As <span className="glyphicon glyphicon-save"></span></button>
-					&nbsp;<button className="btn btn-default btn-sm">New <span className="glyphicon glyphicon-plus-sign"></span></button>
-					&nbsp;<button className="btn btn-danger btn-sm">Delete <span className="glyphicon glyphicon-remove-sign"></span></button>
+					&nbsp;<button className="btn btn-default btn-sm" data-toggle="modal" data-target="#modalIdSaveAsDB">Save As <span className="glyphicon glyphicon-save"></span></button>
+					&nbsp;<button className="btn btn-default btn-sm" data-toggle="modal" data-target="#modalIdNewDB">New <span className="glyphicon glyphicon-plus-sign"></span></button>
+					&nbsp;<button className="btn btn-danger btn-sm" data-toggle="modal" data-target="#modalIdDeleteDB">Delete <span className="glyphicon glyphicon-remove-sign"></span></button>
 					</div>
   			</div>
 			{modalDialog(
@@ -74,7 +106,40 @@ class DbSelect extends React.Component {
 					<button className="btn btn-default" data-dismiss="modal">Cancel</button>
 					&nbsp;<button className="btn btn-primary" onClick={ this.openDatabase }>Open</button>
 					</div> 
-				)}
+			)}
+			{modalDialog(
+				"modalIdSaveAsDB"	
+				, "Save Database As ..."
+				, <div className="form-group">
+					<label for="newDbName">Database Name:</label>
+					<input type="text" className="form-control" id="newSaveAsDbName"></input>
+				  </div>
+				, <div>
+					<button className="btn btn-default" data-dismiss="modal">Cancel</button>
+					&nbsp;<button className="btn btn-primary" onClick={ this.saveAsDatabase }>Save</button>
+				  </div> 
+			)}
+			{modalDialog(
+				"modalIdNewDB"	
+				, "New Database"
+				, <div className="form-group">
+					<label for="newDbName">Database Name:</label>
+					<input type="text" className="form-control" id="newDbName"></input>
+				  </div>
+				, <div>
+					<button className="btn btn-default" data-dismiss="modal">Cancel</button>
+					&nbsp;<button className="btn btn-primary" onClick={ this.newDatabase }>Create</button>
+					</div> 
+			)}
+			{modalDialog(
+				"modalIdDeleteDB"	
+				, "Delete Database"
+				, <div>Are you sure, you want to delete database <b>{this.state.dbFile}</b> ?</div>
+				, <div>
+					<button className="btn btn-default" data-dismiss="modal">Cancel</button>
+					&nbsp;<button className="btn btn-danger" onClick={ this.deleteDatabase }>Yes, go ahead!</button>
+					</div> 
+			)}
 			</div>
   		);
   	}
@@ -82,10 +147,14 @@ class DbSelect extends React.Component {
   // constructor
    constructor(props) {
     super(props);
-    this.state = { dbFile : "frz", availableDBs : [] };
+    this.state = { dbFile : "", availableDBs : [] };
     this.openDatabase = this.openDatabase.bind(this);
     this.saveDatabase = this.saveDatabase.bind(this);
-    this.getAvailableDBs();
+    this.saveAsDatabase = this.saveAsDatabase.bind(this);
+    this.newDatabase = this.newDatabase.bind(this);
+    this.deleteDatabase = this.deleteDatabase.bind(this);
+    this.getBackendState = this.getBackendState.bind(this);
+    this.getBackendState();
 	}
 
 }
