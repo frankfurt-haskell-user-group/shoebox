@@ -26,9 +26,7 @@ class DbSelect extends React.Component {
 
     openDatabase() {
     	var dbName = this.fileWhichWillBeOpened;
-		this.props.sbc.callShoebox("open-db", dbName,  
-			(d) => { this.props.statusF(d) }
-		);
+		this.props.sbc.callShoebox("open-db", dbName);
 		this.setState({dbFile : dbName});
 		$('#modalIdOpenDB').modal('hide');	
     }
@@ -37,10 +35,7 @@ class DbSelect extends React.Component {
     	// check, if we have still one to open, after we deleted the current one
     	if (this.state.availableDBs.length >= 2) {
     		// delete will open a new db
-			this.props.sbc.callShoebox("delete-db", this.state.dbFile,  
-				(d) => { this.props.statusF(d); }
-			);
-			setTimeout(this.getBackendState, 2000);
+			this.props.sbc.callShoebox("delete-db", this.state.dbFile); 
 		} else {
 			this.props.statusF("cannot delete last DB");
 		}
@@ -49,37 +44,32 @@ class DbSelect extends React.Component {
 
     newDatabase() {
     	var dbName = $('#newDbName')[0].value;
-		this.props.sbc.callShoebox("new-db", dbName,  
-			(d) => { this.props.statusF(d); }
-		);
-		this.setState({dbFile : dbName});
-		setTimeout(this.getBackendState, 2000);
+		this.props.sbc.callShoebox("new-db", dbName); 
 		$('#modalIdNewDB').modal('hide');	
     }
 
     saveAsDatabase() {
     	var dbName = $('#newSaveAsDbName')[0].value;
-		this.props.sbc.callShoebox("save-db-as", dbName,  
-			(d) => { this.props.statusF(d); }
-		);
-		this.setState({dbFile : dbName});
-		setTimeout(this.getBackendState, 2000);
+		this.props.sbc.callShoebox("save-db-as", dbName); 
 		$('#modalIdSaveAsDB').modal('hide');	
     }
 
     saveDatabase() {
-		this.props.sbc.callShoebox("save-db", null,  
-			(d) => { this.props.statusF(d); }
-		);
+		this.props.sbc.callShoebox("save-db", null);
     }
 
 
 	getBackendState() {
-		this.props.sbc.callShoebox("available-dbs", null, 
-			(d) => { let s = JSON.parse(d); 
-					 console.log(s);
-					 this.setState({availableDBs : s.availableDBs, dbFile : s.dbFile }); }
-		);
+		this.props.sbc.callShoebox("available-dbs", null);
+	}
+
+	update(e, d) {
+		if (d.msg == "res") {
+			this.props.statusF(d.para);
+		}
+		if (d.msg == "dbs") {
+			this.setState({availableDBs : d.para.availableDBs, dbFile : d.para.dbFile }); 
+		}
 	}
 
   // render function 
@@ -154,9 +144,17 @@ class DbSelect extends React.Component {
     this.newDatabase = this.newDatabase.bind(this);
     this.deleteDatabase = this.deleteDatabase.bind(this);
     this.getBackendState = this.getBackendState.bind(this);
+    this.update = this.update.bind(this);
     this.getBackendState();
 	}
 
+    componentDidMount() {
+      this.props.sbc.subscribe(this.update);
+    }
+
+    componentWillUnmount() {
+      this.props.sbc.unsubscribe(this.update);
+    }
 }
 
 export default DbSelect; 

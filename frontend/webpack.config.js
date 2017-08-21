@@ -11,6 +11,7 @@ module.exports = {
       { test: /\.s?css$/, loader: 'style!css!sass' },
     ]
   },
+  htmlLoader: { minimize: false },
   resolve: {
     extensions: ['', '.js']
   },

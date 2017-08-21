@@ -200,7 +200,7 @@ textDB = SBDatabase
                 [
                     SBDataRowDef refTag "unique reference as id number" SbtNumber,
                     SBDataRowDef txTag "complete sentence as text" SbtText,
-                    SBDataRowDef mbTag "morphene break of sentence" SbtText,
+                    SBDataRowDef mbTag "morpheme break of sentence" SbtText,
                     SBDataRowDef glTag "gloss: meanings and translations from databases" SbtText,
                     SBDataRowDef frTag "freetext translation" SbtText
                 ])
@@ -211,7 +211,7 @@ parsingDB = SBDatabase
                 flTag
                 [
                     SBDataRowDef flTag "full text, to be broken down" SbtText,
-                    SBDataRowDef mbTag "morphene break of text" SbtText
+                    SBDataRowDef mbTag "morpheme break of text" SbtText
                 ])
             (M.fromList [])
 

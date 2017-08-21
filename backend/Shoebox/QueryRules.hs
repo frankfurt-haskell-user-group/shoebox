@@ -16,25 +16,33 @@ import Data.Aeson
 
 import Shoebox.Data
 
-data QRFlag = BreakFlag  deriving (Show, Read, Eq, Data, Typeable, Generic)
+data QRFlag = ParsingFlag -- fields found with no available data-flag are taken as-is, if target found in bk, line is broken up
+              deriving (Show, Read, Eq, Data, Typeable, Generic)
 instance ToJSON QRFlag
 instance FromJSON QRFlag
 
--- |A query rule, goes from a source tag, towards a target tag, with a lookup in a specific DB
-data QueryRule = QueryRule {
-    qrTextDB :: SBDbIdent,
-    qrSourceTag :: SBDataTag,
-    qrTargetTag :: SBDataTag,
-    qrSearchDBs :: [(SBDbIdent, SBDataTag, [QRFlag])]
-    } deriving (Show, Read, Eq, Data, Typeable, Generic)
+data QueryRule = QRMorphemeBreak SBDataTag -- database contains morpheme breaks at tag, source will be splitted in mulitple parts
+               | QRKey -- keys of database contains the tags, we simply use as is
+               | QRTranslate SBDataTag -- target tag contains translation of key tag
+               deriving (Show, Read, Eq, Data, Typeable, Generic)
 
 instance ToJSON QueryRule
 instance FromJSON QueryRule
 
+data Query = Query {
+  qrTextDB :: SBDbIdent,
+  qrSourceTag :: SBDataTag,
+  qrTargetTag :: SBDataTag,
+  qrRules :: [(QueryRule, SBDbIdent)]
+} deriving (Show, Read, Eq, Data, Typeable, Generic)
+
+instance ToJSON Query
+instance FromJSON Query
+
 -- |The data plus a set of query rules defines the shoebox
 data Shoebox = Shoebox {
     sbData :: ShoeboxData,
-    sbQueryRules :: [QueryRule] 
+    sbQueries  :: [Query] 
     } deriving (Show, Read, Eq, Data, Typeable, Generic)
 
 instance ToJSON Shoebox
@@ -43,20 +51,27 @@ instance FromJSON Shoebox
 newShoebox :: Shoebox
 newShoebox = let
     sbData = newShoeboxData
-    queryRules = [
-        QueryRule textDbId txTag mbTag [
-            (parsingDbId, mbTag, [BreakFlag]),
-            (lexDbId, leTag, []),
-            (suffixDbId, leTag, [])
-            ],
-        QueryRule textDbId mbTag glTag [
-            (lexDbId, meTag, []),
-            (suffixDbId, meTag, [])
-            ]
+    sbQueries = [
+      Query textDbId txTag mbTag [
+        (QRMorphemeBreak mbTag, parsingDbId),
+        (QRKey, lexDbId),
+        (QRKey, suffixDbId) 
         ]
-    in Shoebox sbData queryRules
+      , Query textDbId mbTag glTag [
+        (QRTranslate meTag, lexDbId),
+        (QRTranslate meTag, suffixDbId)
+        ]
+      ]
+    in Shoebox sbData sbQueries
 
     
+  {-
+    Query, zunächst wird der Text in Stücke zerteilt, dann pro Stück die Regeln abgearbeitet.
+    Dabei werden alle DB benutzt. Falls ein Stück nicht übersetzt werden kann, wird nachgefragt.
+    
+
+
+  -}
 
 {-
     Interlinearisation ist ein Workflow, in dem sich Nutzereingaben, DB lookups und DB Queries abwechseln.

@@ -7,22 +7,47 @@ const cprocess = remote.require('child_process');
 class ShoeboxChild {
 
 	constructor() {
+		this._log = [];
 		this.cp = cprocess.spawn("./backend/shoeB.exe");
 		this.cp.on('close', (code) => {
 		  console.log(`shoebox child process exited with code ${code}`);
 		});
+		this.cp.stdout.on('data', (d) => {
+			var s = d.toString();
+			console.log("bin data: " + s);
+			var ms = s.split('\n');
+			ms.pop();
+			var js = ms.map( (m) => JSON.parse(m));
+			js.map( (j) => {console.log(j), this._log.push(j); $(this).trigger('shoebox-data', j ); });
+		});
 	}
 
-	callShoebox(cmd, para, f) {
-		this.cp.stdout.once("data", function (d) {
+	getLog() {
+		return this._log;
+	}
+
+	subscribe(f) {
+		$(this).on('shoebox-data', f);
+	}
+
+	unsubscribe(f) {
+		$(this).off('shoebox-data', f);
+	}
+
+	callShoebox(cmd, para) {
+/*		this.cp.stdout.once("data", function (d) {
 			let r = d.toString();
 			f(r);
 		});
+*/
+		var msg;
 		if (para == null) {
-			this.cp.stdin.write( JSON.stringify({cmd : cmd}) + "\n");
+			msg = JSON.stringify({cmd : cmd});
 		} else {
-			this.cp.stdin.write( JSON.stringify({cmd : cmd, para : para}) + "\n");
+			msg = JSON.stringify({cmd : cmd, para : para});
 		}
+		this.cp.stdin.write( msg + "\n");
+		this._log.push(JSON.parse(msg));
 	}
 }
 
