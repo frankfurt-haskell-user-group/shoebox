@@ -64,7 +64,35 @@ newShoebox = let
       ]
     in Shoebox sbData sbQueries
 
-    
+
+queryLength :: Shoebox -> Int
+queryLength sb = length (sbQueries sb)    
+
+queryRule :: Shoebox -> (QueryRule, SBDbIdent) -> SBDataEntry -> Either SBError (Maybe SBDataEntry)
+queryRule sb (r, si) de = let
+  (ShoeboxData dmap) = (sbData sb)
+  db = fromJust $ M.lookup si dmap
+  in case r of
+    QRMorphemeBreak tag -> dbQuery db de tag
+    QRKey -> dbQueryKey db de
+    QRTranslate tag -> dbQuery db de tag
+
+queryQuery :: Shoebox -> Query -> SBDataEntry -> Either SBError (Maybe SBDataEntry)
+queryQuery sb q e = 
+  foldl (\a b -> case a of
+    Right Nothing -> queryRule sb b e
+    _ -> a
+    ) (Right Nothing) (qrRules q)
+
+queryEntry :: Shoebox -> SBDataEntry -> [Either SBError (Maybe SBDataEntry)]
+queryEntry sb e = 
+  foldl (\a b -> case a of
+      [] -> [queryQuery sb b e]
+      (x:xs) -> case x of
+        Right (Just r) -> (queryQuery sb b r) : a
+        _ -> a 
+    ) [] (sbQueries sb)
+
   {-
     Query, zunächst wird der Text in Stücke zerteilt, dann pro Stück die Regeln abgearbeitet.
     Dabei werden alle DB benutzt. Falls ein Stück nicht übersetzt werden kann, wird nachgefragt.

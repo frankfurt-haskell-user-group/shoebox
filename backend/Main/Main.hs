@@ -52,32 +52,28 @@ doCommand gs l = let
                             (Just (String "save-db"), Nothing) -> do
                                 saveShoebox (gsShoebox gs) (gsDataDir gs) (gsDbName gs) 
                                 return (gs, [(buildMessage "res" (resultString "saved: " gs))])
+                                
                             (Just (String "save-db-as"), Just (String db)) -> do
                                 saveShoebox (gsShoebox gs) (gsDataDir gs) db 
                                 let gs' = GlobalState (gsDataDir gs) db (gsShoebox gs) 
-                                m2 <- aDBs gs'
-                                let msg = [
-                                        (buildMessage "res" (resultString "saved: " gs'))
-                                        , m2  
-                                        ]
+                                msg <- sequenceA [ return (buildMessage "res" (resultString "saved: " gs')) , aDBs gs']  
                                 return (gs', msg) 
 
                             (Just (String "new-db"), Just (String db)) -> do
                                 let gs' = GlobalState (gsDataDir gs) db newShoebox 
                                 saveShoebox (gsShoebox gs') (gsDataDir gs') (gsDbName gs') 
-                                m2 <- aDBs gs'
-                                return (gs', [
-                                    (buildMessage "res" (resultString "created: " gs'))
-                                    , m2 
-                                    ])
+                                msg <- sequenceA [ return (buildMessage "res" (resultString "created: " gs')) , aDBs gs']  
+                                return (gs', msg) 
 
                             (Just (String "available-dbs"), Nothing) -> do
                                 m <- aDBs gs
                                 return (gs, [m])
+
                             (Just (String "open-db"), Just (String db)) -> do
                                 sb' <- readShoebox (gsDataDir gs) db
                                 let gs' = GlobalState (gsDataDir gs) db sb'
                                 return (gs', [(buildMessage "res" (resultString "opened: " gs'))])
+
                             (Just (String "delete-db"), Just (String db)) -> do
                                 -- deletes current db and opens first db, available
                                 -- this should not be called, if there are no additional db's available !
@@ -87,14 +83,26 @@ doCommand gs l = let
                                 let db' = head dbs -- !!
                                 sb <- readShoebox (gsDataDir gs) db'
                                 let gs' = GlobalState (gsDataDir gs) db' sb 
-                                m2 <- aDBs gs'
-                                return $ (gs', 
-                                    [
-                                        (buildMessage "res" (String (T.concat ["deleted: ", db, " opened: ", db'])))
-                                        , m2
-                                    ]
-                                        )
+
+                                msg <- sequenceA [ return (buildMessage "res" (String (T.concat ["deleted: ", db, " opened: ", db']))) , aDBs gs' ]
+                                return (gs', msg) 
+
+                            (Just (String "db-info"), Nothing) -> do
+                                let sb = gsShoebox gs
+                                let queries = sbQueries sb
+                                let (ShoeboxData dmap)  = sbData sb
+                                let dataInfo sbdata = (desc, schema) where
+                                        desc = sbdbDescription sbdata
+                                        schema = sbdbSchema sbdata
+                                let dbInfo = fmap dataInfo dmap
+                                return (gs, [buildMessage "db-info" (toJSON (dbInfo, queries))])
+
+                            (Just (String "query"), Just (String q)) -> do
+                                let r = queryEntry (gsShoebox gs) (SbeText q) 
+                                return (gs, [buildMessage "query-result" (toJSON r)])
+                                
                             _ -> return $ unknownMsg cmd
+
         Just val -> return $ unknownMsg val
         Nothing -> return $ unknownMsg l
 

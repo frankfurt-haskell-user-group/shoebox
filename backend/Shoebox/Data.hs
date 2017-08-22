@@ -55,14 +55,14 @@ instance FromJSON SBDataRow
 
 -- |A database consists of a schema and the actual data-fields, the tag and type of the key is encoded in the schema def
 -- In the data rows, of the map, the key is not included, it is included in the key of the map
-data SBDatabase = SBDatabase { sbdbSchema::SBDataSchema, sbdbRows::M.Map SBDataEntry [SBDataRow] } deriving (Show, Read, Eq, Data, Typeable, Generic)
+data SBDatabase = SBDatabase { sbdbDescription::Text, sbdbSchema::SBDataSchema, sbdbRows::M.Map SBDataEntry [SBDataRow] } deriving (Show, Read, Eq, Data, Typeable, Generic)
 instance FromJSONKey SBDataEntry 
 instance ToJSONKey SBDataEntry 
 instance ToJSON SBDatabase
 instance FromJSON SBDatabase
 
 -- |A database identifier contains a shortcut for the database and a description
-data SBDbIdent = SBDbIdent { sbdiName::Text, sbdiDescription::Text } deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
+data SBDbIdent = SBDbIdent { sbdiName::Text } deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
 instance FromJSONKey SBDbIdent 
 instance ToJSONKey SBDbIdent 
 instance ToJSON SBDbIdent
@@ -159,6 +159,14 @@ dbQuery db key tag = if not (dbCheckKeyType db key)
         then Left SbErrorQueryWrongDataTag
         else Right $ fmap sbdrEntry (queryRowData key tag (sbdbRows db)) 
 
+-- |Query database to check, if rows exists for an entry, gives key back as entry
+dbQueryKey :: SBDatabase -> SBDataEntry -> Either SBError (Maybe SBDataEntry)
+dbQueryKey db key = if not (dbCheckKeyType db key)
+    then Left SbErrorQueryWrongKeyType
+    else case M.lookup key (sbdbRows db) of
+        Just rs -> Right (Just key)
+        Nothing -> Right Nothing
+
 -- |Insert from records, ignores records without valid key or valid tag or valid data
 dbInsertFromRecords :: SBDatabase -> [[SBDataRow]] -> SBDatabase
 dbInsertFromRecords db recs = let 
@@ -188,13 +196,14 @@ meTag = SBDataTag "me"
 coTag = SBDataTag "co"
 
 -- some db idents for clarity
-textDbId = SBDbIdent "text DB" "text database, containing complete sentences and translations"
-parsingDbId = SBDbIdent "parsing DB" "database, containing break-downs of words, for parsing"
-lexDbId = SBDbIdent "lex DB" "database, containing lexical elements and translations (meanings)"
-suffixDbId = SBDbIdent "suffix DB" "database, containing prefixes and suffixes"
+textDbId = SBDbIdent "textDB" 
+parsingDbId = SBDbIdent "parsingDB" 
+lexDbId = SBDbIdent "lexDB"
+suffixDbId = SBDbIdent "suffixDB" 
 
 -- |Test database for the start, text content
 textDB = SBDatabase 
+            "text database, containing complete sentences and translations"
             (SBDataSchema 
                 refTag
                 [
@@ -207,6 +216,7 @@ textDB = SBDatabase
             (M.fromList [])
 
 parsingDB = SBDatabase
+            "database, containing break-downs of words, for parsing"
             (SBDataSchema 
                 flTag
                 [
@@ -216,6 +226,7 @@ parsingDB = SBDatabase
             (M.fromList [])
 
 lexDB = SBDatabase
+             "database, containing lexical elements and translations (meanings)"
             (SBDataSchema 
                 leTag
                 [
@@ -223,9 +234,12 @@ lexDB = SBDatabase
                     SBDataRowDef meTag "meaning" SbtTextArray,
                     SBDataRowDef coTag "comment" SbtText
                 ])
-            (M.fromList [])
+            (M.fromList [(
+                            SbeText "wowdy", 
+                            [ SBDataRow meTag (SbeText "cool wowdy") ]
+                        )])
 
-suffixDB = lexDB
+suffixDB = lexDB { sbdbDescription = "database, containing prefixes and suffixes"}
 
 newShoeboxData = ShoeboxData $ M.fromList [
         (textDbId, textDB),
