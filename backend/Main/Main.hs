@@ -41,7 +41,16 @@ aDBs gs = do
     let o = Object $ M.fromList [("dbFile", f), ("availableDBs", dbs')]
     return $ (buildMessage "dbs" o)
 
-
+prettyQueryNode qn = 
+  let _pd d = case d of
+                SbeText t -> String t
+                SbeTextArray ta -> Array . V.fromList $ map String ta
+                SbeNumber n -> Number (fromIntegral n)
+  in case qn of
+    QN (Right (Just d)) [] -> _pd d 
+    QN (Right (Just (SbeText t))) qns -> Object (M.fromList [(t, (Array . V.fromList) (fmap prettyQueryNode qns))])
+    QN _ [] -> Null
+    
 doCommand :: GlobalState -> T.Text -> IO (GlobalState, [T.Text])
 doCommand gs l = let
     unknownMsg val = (gs, [(buildMessage "res" (String (T.concat ["unknown command received: ", (showT val)])))])  
@@ -98,8 +107,8 @@ doCommand gs l = let
                                 return (gs, [buildMessage "db-info" (toJSON (dbInfo, queries))])
 
                             (Just (String "query"), Just (String q)) -> do
-                                let r = queryEntry (gsShoebox gs) (SbeText q) 
-                                return (gs, [buildMessage "query-result" (toJSON r)])
+                                let r = queryEntry (gsShoebox gs) (QN (Right (Just (SbeText q))) [])
+                                return (gs, [buildMessage "query-result" (toJSON (prettyQueryNode r))])
                                 
                             _ -> return $ unknownMsg cmd
 

@@ -195,6 +195,8 @@ leTag = SBDataTag "le"
 meTag = SBDataTag "me"
 coTag = SBDataTag "co"
 
+bkTag = SBDataTag "bk"
+
 -- some db idents for clarity
 textDbId = SBDbIdent "textDB" 
 parsingDbId = SBDbIdent "parsingDB" 
@@ -221,7 +223,7 @@ parsingDB = SBDatabase
                 flTag
                 [
                     SBDataRowDef flTag "full text, to be broken down" SbtText,
-                    SBDataRowDef mbTag "morpheme break of text" SbtText
+                    SBDataRowDef bkTag "morpheme break of text" SbtTextArray
                 ])
             (M.fromList [])
 
@@ -234,10 +236,13 @@ lexDB = SBDatabase
                     SBDataRowDef meTag "meaning" SbtTextArray,
                     SBDataRowDef coTag "comment" SbtText
                 ])
+            (M.fromList [])
+{-
             (M.fromList [(
                             SbeText "wowdy", 
                             [ SBDataRow meTag (SbeText "cool wowdy") ]
                         )])
+-}
 
 suffixDB = lexDB { sbdbDescription = "database, containing prefixes and suffixes"}
 

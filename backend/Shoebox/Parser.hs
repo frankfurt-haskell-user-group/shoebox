@@ -36,7 +36,7 @@ parseElemChar = do
 
 parseElemCharBK :: Parsec Text SBDatabase Char
 parseElemCharBK = do
-  P.try (P.noneOf ['\n', ';', '-', '='] )
+  P.try (P.noneOf ['\n', ';', '-'] )
   P.<|> 
   (P.try (P.newline >> P.lookAhead (P.noneOf ['\\', '\n']) ))
 
@@ -72,7 +72,7 @@ parseTextEntry = do
 
 parseTextArrayEntry :: Parsec Text SBDatabase SBDataEntry  
 parseTextArrayEntry = do
-  ts <- P.sepEndBy (P.many parseElemChar) (P.char ';' >> spaces)
+  ts <- P.sepEndBy (P.many parseElemCharBK) ((P.string "-") P.<|> (P.char ';' >> spaces))
   return $ SbeTextArray (map T.pack ts)
 
 parseNumberEntry :: Parsec Text SBDatabase SBDataEntry  
