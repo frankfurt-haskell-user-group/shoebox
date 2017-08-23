@@ -1,12 +1,55 @@
 import React, { Component } from 'react';
 
+function isArray(a) {
+    return (!!a) && (a.constructor === Array);
+};
+
+function isObject(a) {
+    return (!!a) && (a.constructor === Object);
+};
+
+function listGroupItem(i) {
+  return (<li className="list-group-item">{i}</li>);
+}
+
+function listGroup(l) {
+  return (
+    <ul className="list-group">
+    { l.map( (i) => {return <li className="list-group-item">{i}</li> }) }
+    </ul>
+    );
+}
+
+function showDetail(i) {
+
+  if (isObject(i)) { 
+      console.log("object: " + JSON.stringify(i)) ;
+      var r = [] ; 
+      for (var k in i) {
+        r.push (
+          <div>
+            <h4>{k}</h4>
+            {  showDetail(i[k]) }
+          </div>
+        );
+      };
+      return listGroup(r);
+  } 
+
+  if (isArray(i)) {
+      console.log("array: " + JSON.stringify(i)) ;
+      return (<div> { i.map( (n) => showDetail(n) ) }</div>)
+  }
+
+  console.log("non of both: " + JSON.stringify(i));
+  return (<div>{i}</div>);
+}
+
 function showResult(json) {
   if (json != null && json.msg == "query-result") {
   return (
     <div>
-      <h5>Raw Result:</h5> 
-      {JSON.stringify(json.para)}
-      <h5>Table Result:</h5> 
+      {showDetail(json.para)}
     </div>
     );
   } else {
