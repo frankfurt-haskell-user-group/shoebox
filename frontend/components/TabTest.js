@@ -10,25 +10,35 @@ class TabTest extends React.Component {
   // render function 
   render() {
   	return (
-		<div>
-			<h3><small>Test Panel</small></h3>
-
-			<h5>Execute Cmd</h5>
-			<div className="form-group">
-				<label for="command">Command:</label>
-				<input type="text" className="form-control" id="command"></input>
+  	<div>
+		<div className="row">
+			<div className="col-sm-12">
+				<h3><small>Execute Cmd</small></h3>
+				commands: available-dbs, current-db, open-db db, save-db, save-db-as db, query text, ... <p/>
 			</div>
-			<button className="btn btn-primary" onClick={ () => {
-				var cmds = $('#command')[0].value.split(/\s+/);
-				this.props.sbc.callShoebox(cmds[0], cmds.length > 1 ? cmds[1] : null, (d) => this.setState({testResult : d.toString()}));
-			}}>
-			Execute
-			</button>
-			<h5>Event Log</h5>
-			<div style={{maxHeight: 200 + "px", overflowY: "scroll"}}>
-			  { showLog(this.state.msgLog) }
-			</div> 
 		</div>
+		<div className="row">
+			<div className="form-group col-sm-8">
+				<input style={{width: 500 + "px"}} type="text" className="form-control" id="command"></input>
+			</div>
+			<div className="col-sm-4">
+				<button className="btn btn-primary btn-sm" onClick={ () => {
+					var cmds = $('#command')[0].value.split(/\s+/);
+					this.props.sbc.callShoebox(cmds[0], cmds.length > 1 ? cmds[1] : null);
+				}}>
+				Execute
+				</button>
+			</div>
+		</div>
+		<div className="row">
+			<div className="col-sm-12">
+				<h3><small>Event Log</small></h3>
+				<div style={{maxHeight: 280 + "px", overflowY: "scroll"}}>
+				  { showLog(this.state.msgLog) }
+				</div> 
+			</div>
+		</div>
+	</div>
   		);
   	}
 

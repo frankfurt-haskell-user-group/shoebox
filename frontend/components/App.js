@@ -72,7 +72,7 @@ class App extends React.Component {
   // constructor
   constructor(props) {
     super(props);
-    this.state = { statusLine : "", tab : "Test" };
+    this.state = { statusLine : "", tab : "Query" };
     this.setStatusLine = this.setStatusLine.bind(this);
   }
 
