@@ -29,14 +29,24 @@ local function osSep()
 end
 
 local function buildFrontend()
+	o, a = getOS()
 	lfs.chdir(glue.bin .. "/../frontend")
 --	os.execute("bower update")
-	os.execute("npm run build")
+	if o == "windows" then
+		os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 cmd /C npm run build")
+	else
+		os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 npm run build")
+	end
 end
 
 local function initFrontend()
+	o, a = getOS()
 	lfs.chdir(glue.bin .. "/../frontend")
-	os.execute("npm install")
+	if o == "windows" then
+		os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 cmd /C npm install")
+	else
+		os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 npm install")
+	end
 end
 
 local function buildBackend()
