@@ -76,7 +76,7 @@ local function runApp()
 
 	-- execute electron
 	lfs.chdir("dist")
-	os.execute("electron index.html")
+	os.execute(".." .. osSep() .. ".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Electron.0817 index.html")
 end
 
 local function helpText()
