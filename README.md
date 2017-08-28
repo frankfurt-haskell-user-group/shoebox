@@ -4,31 +4,24 @@ The shoebox project
 documentation can be found here:
 https://frankfurt-haskell-user-group.github.io/shoebox/index.html
 
-## build instructions - backend
+## build instructions 
 
-- ensure stack is installed
-- cd into frontend folder
-- start build
-    `stack install --local-bin-path` . 
+- before first build, initialize build-chains for frontend and backend
+    `build-win frontend-init`  
+    `build-win backend-init` 
 
-## build instructions - frontend
+- build backend
+	`build-win backend`
 
-- Ensure that [Node.js](https://nodejs.org/) version 4 or higher is installed:
-     `node --version`
+- build frontend
+	`build-win frontend`
 
-- Install the Node, bower [Bower](https://bower.io/) and update modules:
-     `npm update`
-     `npm install -g bower`
-     `bower update`
 
-- Build the UI:
-     `cd frontend`
-     `npm run build`
+## run program
 
-## run instructions - electron
+	`build-win run`
 
-- Install electron
-     `npm install -g electron`
+## Linux
 
-- 
+- replace `build-win` with `./build-linux`
 
