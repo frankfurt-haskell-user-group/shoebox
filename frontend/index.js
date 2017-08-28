@@ -8,7 +8,11 @@ class ShoeboxChild {
 
 	constructor() {
 		this._log = [];
-		this.cp = cprocess.spawn("./backend/shoeB.exe");
+		if (remote.process.platform == 'win32') {
+			this.cp = cprocess.spawn("./backend/shoeB.exe");
+		} else {
+			this.cp = cprocess.spawn("./backend/shoeB");
+		}
 		this.cp.on('close', (code) => {
 		  console.log(`shoebox child process exited with code ${code}`);
 		});

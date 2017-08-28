@@ -33,7 +33,7 @@ class TabTest extends React.Component {
 		<div className="row">
 			<div className="col-sm-12">
 				<h3><small>Event Log</small></h3>
-				<div style={{maxHeight: 280 + "px", overflowY: "scroll"}}>
+				<div style={{maxHeight: 250 + "px", overflowY: "scroll"}}>
 				  { showLog(this.state.msgLog) }
 				</div> 
 			</div>

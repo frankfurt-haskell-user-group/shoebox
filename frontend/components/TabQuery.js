@@ -48,7 +48,7 @@ function showDetail(i) {
 function showResult(json) {
   if (json != null && json.msg == "query-result") {
   return (
-    <div>
+    <div style={{maxHeight: 280 + "px", overflowY: "scroll"}}>
       {showDetail(json.para)}
     </div>
     );

@@ -71,8 +71,11 @@ local function runApp()
 	if o == "windows" then
 		os.execute("xcopy /Y /Q ..\\data dist\\data\\")
 		os.execute("xcopy /Y /Q ..\\backend\\shoeB.exe dist\\backend\\")
+        else
+		os.execute("cp -R ../data dist/data")
+		os.execute("mkdir -p dist/backend")
+		os.execute("cp ../backend/shoeB dist/backend")
 	end
-	-- linux version, to be done!
 
 	-- execute electron
 	lfs.chdir("dist")
