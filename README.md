@@ -19,7 +19,7 @@ https://frankfurt-haskell-user-group.github.io/shoebox/index.html
 
 ## run program
 
-	`build-win run`
+-	`build-win run`
 
 ## Linux
 
