@@ -35,7 +35,7 @@ local function buildFrontend()
 	if o == "windows" then
 		os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 cmd /C npm run build")
 	else
-		os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 npm run build")
+		os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 bash -c \"npm run build\"")
 	end
 end
 
@@ -45,7 +45,7 @@ local function initFrontend()
 	if o == "windows" then
 		os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 cmd /C npm install")
 	else
-		os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 npm install")
+		os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 bash -c \"npm install\"")
 	end
 end
 
