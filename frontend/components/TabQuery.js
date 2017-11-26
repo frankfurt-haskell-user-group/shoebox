@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Command, FileCommand, QueryCommand } from '../commands';
 
 function isArray(a) {
     return (!!a) && (a.constructor === Array);
@@ -74,7 +75,7 @@ class TabQuery extends React.Component {
       <div className="col-sm-4">
         <button className="btn btn-primary btn-sm" onClick={ () => {
           var cmd = $('#query')[0].value;
-          this.props.sbc.callShoebox("query", cmd);
+            this.props.sbc.callShoeboxCmd(new Command(Command.CmdQuery, new QueryCommand(QueryCommand.DbQuery, cmd)));
         }}>
         Query DB
         </button>

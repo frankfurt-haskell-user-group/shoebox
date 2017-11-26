@@ -7,9 +7,15 @@ module Shoebox.Util (
   writeLineConsole,
   showT,
   decodeFromText,
-  encodeToText
+  encodeToText,
+  decodeFromCbor
   )
 where
+
+import Data.ByteString.Base64 as B64
+import Data.Text.Encoding
+import Data.Binary.Serialise.CBOR as CBOR
+import Data.Maybe
 
 import qualified Data.Text as T
 import qualified Data.ByteString as BS
@@ -48,7 +54,19 @@ showT :: Show a => a -> T.Text
 showT = T.pack . show
 
 decodeFromText :: FromJSON a => T.Text -> Maybe a
-decodeFromText = decode . BL.fromStrict . EN.encodeUtf8
+decodeFromText = Data.Aeson.decode . BL.fromStrict . EN.encodeUtf8
 
 encodeToText :: ToJSON a => a -> T.Text
 encodeToText = EN.decodeUtf8 . BL.toStrict . encodePretty 
+
+decodeFromCbor :: Serialise a => T.Text -> Maybe a
+decodeFromCbor base64 = let
+  dr = (B64.decode . encodeUtf8) base64
+  in case dr of
+    Right d -> Just $ CBOR.deserialise (BL.fromStrict d) :: (Serialise a => Maybe a)
+    Left s -> Nothing
+
+encodeToCbor :: Serialise a => a -> T.Text
+encodeToCbor msg = let
+  e = BL.toStrict (CBOR.serialise msg)
+  in (decodeUtf8 . B64.encode) e

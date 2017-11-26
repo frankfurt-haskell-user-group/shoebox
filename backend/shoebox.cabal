@@ -12,7 +12,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:       Shoebox.Parser, Shoebox.Data, Shoebox.QueryRules, Shoebox.Interface, Shoebox.Util
+  exposed-modules:       Shoebox.Parser, Shoebox.Data, Shoebox.QueryRules, Shoebox.Interface, Shoebox.Util, Shoebox.Command
   build-depends:       base >=4.9 && <4.10
                      , containers
                      , text
@@ -24,6 +24,9 @@ library
                      , filepath
                      , strict
                      , split
+                     , cereal
+                     , binary-serialise-cbor
+                     , base64-bytestring
   hs-source-dirs:      .
   default-language:    Haskell2010
 
@@ -36,6 +39,8 @@ executable shoeB
                      , bytestring
                      , text
                      , aeson
+                     , base64-bytestring
+                     , binary-serialise-cbor
   hs-source-dirs:      Main
   default-language:    Haskell2010
   ghc-options:         -threaded

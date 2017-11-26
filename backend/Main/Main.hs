@@ -5,11 +5,18 @@ module Main (main) where
 import Shoebox.Interface
 import Shoebox.Parser
 import Shoebox.Data
+import Shoebox.Command
 import Shoebox.Util
 import Shoebox.QueryRules
 
 import qualified Data.Text as T
+import qualified Data.ByteString.Lazy as BSL
 import Data.Aeson
+import Data.ByteString.Base64 as B64
+import Data.Text.Encoding
+import Data.Binary.Serialise.CBOR as CBOR
+import Data.Maybe
+
 
 import qualified Data.HashMap.Lazy as M 
 import qualified Data.Vector as V
@@ -26,6 +33,9 @@ defaultGS = do
     sb <- readShoebox dn fn
     let gs = GlobalState dn fn sb 
     return gs
+
+buildMessage' :: Command -> T.Text 
+buildMessage' cmd = encodeToCbor cmd
 
 buildMessage msg ob = let
     o = Object $ M.fromList [("msg", msg), ("para", ob)]
@@ -54,66 +64,63 @@ prettyQueryNode qn =
 doCommand :: GlobalState -> T.Text -> IO (GlobalState, [T.Text])
 doCommand gs l = let
     unknownMsg val = (gs, [(buildMessage "res" (String (T.concat ["unknown command received: ", (showT val)])))])  
-    cmd = decodeFromText l
+    cmd = decodeFromCbor l :: Maybe Command
     in case cmd of
-        Just (Object m) -> case (M.lookup "cmd" m, M.lookup "para" m) of
-                            (Just (String "current-db"), Nothing) -> return (gs, [(buildMessage "cur" (String . gsDbName $ gs))])
-                            (Just (String "save-db"), Nothing) -> do
-                                saveShoebox (gsShoebox gs) (gsDataDir gs) (gsDbName gs) 
-                                return (gs, [(buildMessage "res" (resultString "saved: " gs))])
-                                
-                            (Just (String "save-db-as"), Just (String db)) -> do
-                                saveShoebox (gsShoebox gs) (gsDataDir gs) db 
-                                let gs' = GlobalState (gsDataDir gs) db (gsShoebox gs) 
-                                msg <- sequenceA [ return (buildMessage "res" (resultString "saved: " gs')) , aDBs gs']  
-                                return (gs', msg) 
+        Just (CmdFc GetCurrentDB) -> return (gs, [(buildMessage "cur" (String . gsDbName $ gs))])
 
-                            (Just (String "new-db"), Just (String db)) -> do
-                                let gs' = GlobalState (gsDataDir gs) db newShoebox 
-                                saveShoebox (gsShoebox gs') (gsDataDir gs') (gsDbName gs') 
-                                msg <- sequenceA [ return (buildMessage "res" (resultString "created: " gs')) , aDBs gs']  
-                                return (gs', msg) 
+        Just (CmdFc GetAvailableDBs) -> do
+            m <- aDBs gs
+            return (gs, [m])
 
-                            (Just (String "available-dbs"), Nothing) -> do
-                                m <- aDBs gs
-                                return (gs, [m])
+        Just (CmdFc (CreateDB db)) -> do
+            let gs' = GlobalState (gsDataDir gs) db newShoebox 
+            saveShoebox (gsShoebox gs') (gsDataDir gs') (gsDbName gs') 
+            msg <- sequenceA [ return (buildMessage "res" (resultString "created: " gs')) , aDBs gs']  
+            return (gs', msg) 
 
-                            (Just (String "open-db"), Just (String db)) -> do
-                                sb' <- readShoebox (gsDataDir gs) db
-                                let gs' = GlobalState (gsDataDir gs) db sb'
-                                return (gs', [(buildMessage "res" (resultString "opened: " gs'))])
+        Just (CmdFc (DeleteDB db)) -> do
+            -- deletes current db and opens first db, available
+            -- this should not be called, if there are no additional db's available !
+            deleteDB (gsDataDir gs) db
+            -- now open the new one
+            dbs <- listDBs (gsDataDir gs)
+            let db' = head dbs -- !!
+            sb <- readShoebox (gsDataDir gs) db'
+            let gs' = GlobalState (gsDataDir gs) db' sb 
 
-                            (Just (String "delete-db"), Just (String db)) -> do
-                                -- deletes current db and opens first db, available
-                                -- this should not be called, if there are no additional db's available !
-                                deleteDB (gsDataDir gs) db
-                                -- now open the new one
-                                dbs <- listDBs (gsDataDir gs)
-                                let db' = head dbs -- !!
-                                sb <- readShoebox (gsDataDir gs) db'
-                                let gs' = GlobalState (gsDataDir gs) db' sb 
+            msg <- sequenceA [ return (buildMessage "res" (String (T.concat ["deleted: ", db, " opened: ", db']))) , aDBs gs' ]
+            return (gs', msg) 
 
-                                msg <- sequenceA [ return (buildMessage "res" (String (T.concat ["deleted: ", db, " opened: ", db']))) , aDBs gs' ]
-                                return (gs', msg) 
+        Just (CmdFc (OpenDB db)) -> do
+            sb' <- readShoebox (gsDataDir gs) db
+            let gs' = GlobalState (gsDataDir gs) db sb'
+            return (gs', [(buildMessage "res" (resultString "opened: " gs'))])
 
-                            (Just (String "db-info"), Nothing) -> do
-                                let sb = gsShoebox gs
-                                let queries = sbQueries sb
-                                let (ShoeboxData dmap)  = sbData sb
-                                let dataInfo sbdata = (desc, schema) where
-                                        desc = sbdbDescription sbdata
-                                        schema = sbdbSchema sbdata
-                                let dbInfo = fmap dataInfo dmap
-                                return (gs, [buildMessage "db-info" (toJSON (dbInfo, queries))])
+        Just (CmdFc SaveDB) -> do
+            saveShoebox (gsShoebox gs) (gsDataDir gs) (gsDbName gs) 
+            return (gs, [(buildMessage "res" (resultString "saved: " gs))])
 
-                            (Just (String "query"), Just (String q)) -> do
-                                let r = queryEntry (gsShoebox gs) (QN (Right (Just (SbeText q))) [])
-                                return (gs, [buildMessage "query-result" (toJSON (prettyQueryNode r))])
-                                
-                            _ -> return $ unknownMsg cmd
+        Just (CmdFc (SaveDBAs db)) -> do
+            saveShoebox (gsShoebox gs) (gsDataDir gs) db 
+            let gs' = GlobalState (gsDataDir gs) db (gsShoebox gs) 
+            msg <- sequenceA [ return (buildMessage "res" (resultString "saved: " gs')) , aDBs gs']  
+            return (gs', msg) 
 
-        Just val -> return $ unknownMsg val
-        Nothing -> return $ unknownMsg l
+        Just (CmdQuery DbInfo) -> do
+            let sb = gsShoebox gs
+            let queries = sbQueries sb
+            let (ShoeboxData dmap)  = sbData sb
+            let dataInfo sbdata = (desc, schema) where
+                    desc = sbdbDescription sbdata
+                    schema = sbdbSchema sbdata
+            let dbInfo = fmap dataInfo dmap
+            return (gs, [buildMessage "db-info" (toJSON (dbInfo, queries))])
+
+        Just (CmdQuery (DbQuery q)) -> do
+            let r = queryEntry (gsShoebox gs) (QN (Right (Just (SbeText q))) [])
+            return (gs, [buildMessage "query-result" (toJSON (prettyQueryNode r))])
+
+        _ -> return $ unknownMsg l
 
 
 main :: IO ()

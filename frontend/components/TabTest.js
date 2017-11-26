@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Command, FileCommand } from '../commands';
 
 function showLog(log) {
   return log.map( (d) => 
@@ -24,7 +25,9 @@ class TabTest extends React.Component {
 			<div className="col-sm-4">
 				<button className="btn btn-primary btn-sm" onClick={ () => {
 					var cmds = $('#command')[0].value.split(/\s+/);
-					this.props.sbc.callShoebox(cmds[0], cmds.length > 1 ? cmds[1] : null);
+					// this.props.sbc.callShoebox(cmds[0], cmds.length > 1 ? cmds[1] : null);
+				    var cmd = new Command(Command.CmdFc, new FileCommand(FileCommand.DeleteDB, "test-db"));
+				    this.props.sbc.callShoeboxCmd(cmd);
 				}}>
 				Execute
 				</button>

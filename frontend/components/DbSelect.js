@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import ListGroup from './ListGroup';
+import { Command, FileCommand, QueryCommand } from '../commands';
 
 function modalDialog(myId, myTitle, myContent, myFooter) {
 	return (
@@ -26,7 +27,7 @@ class DbSelect extends React.Component {
 
     openDatabase() {
     	var dbName = this.fileWhichWillBeOpened;
-		this.props.sbc.callShoebox("open-db", dbName);
+		this.props.sbc.callShoeboxCmd(new Command(Command.CmdFc, new FileCommand(FileCommand.OpenDB, dbName)));
 		this.setState({dbFile : dbName});
 		$('#modalIdOpenDB').modal('hide');	
     }
@@ -34,33 +35,33 @@ class DbSelect extends React.Component {
     deleteDatabase() {
     	// check, if we have still one to open, after we deleted the current one
     	if (this.state.availableDBs.length >= 2) {
-    		// delete will open a new db
-			this.props.sbc.callShoebox("delete-db", this.state.dbFile); 
+		    // delete will open a new db
+		    this.props.sbc.callShoeboxCmd(new Command(Command.CmdFc, new FileCommand(FileCommand.DeleteDB, this.state.dbFile))); 
 		} else {
-			this.props.statusF("cannot delete last DB");
+		    this.props.statusF("cannot delete last DB");
 		}
 		$('#modalIdDeleteDB').modal('hide');	
     }
 
     newDatabase() {
     	var dbName = $('#newDbName')[0].value;
-		this.props.sbc.callShoebox("new-db", dbName); 
-		$('#modalIdNewDB').modal('hide');	
+	this.props.sbc.callShoeboxCmd(new Command(Command.CmdFc, new FileCommand(FileCommand.CreateDB, dbName))); 
+	$('#modalIdNewDB').modal('hide');	
     }
 
     saveAsDatabase() {
     	var dbName = $('#newSaveAsDbName')[0].value;
-		this.props.sbc.callShoebox("save-db-as", dbName); 
-		$('#modalIdSaveAsDB').modal('hide');	
+	this.props.sbc.callShoeboxCmd(new Command(Command.CmdFc, new FileCommand(FileCommand.SaveDBAs, dbName))); 
+	$('#modalIdSaveAsDB').modal('hide');	
     }
 
     saveDatabase() {
-		this.props.sbc.callShoebox("save-db", null);
+	this.props.sbc.callShoeboxCmd(new Command(Command.CmdFc, new FileCommand(FileCommand.SaveDB)));
     }
 
 
 	getBackendState() {
-		this.props.sbc.callShoebox("available-dbs", null);
+	    this.props.sbc.callShoeboxCmd(new Command(Command.CmdFc, new FileCommand(FileCommand.GetAvailableDBs)));
 	}
 
 	update(e, d) {

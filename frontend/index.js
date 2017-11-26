@@ -38,21 +38,14 @@ class ShoeboxChild {
 		$(this).off('shoebox-data', f);
 	}
 
-	callShoebox(cmd, para) {
-/*		this.cp.stdout.once("data", function (d) {
-			let r = d.toString();
-			f(r);
-		});
-*/
-		var msg;
-		if (para == null) {
-			msg = JSON.stringify({cmd : cmd});
-		} else {
-			msg = JSON.stringify({cmd : cmd, para : para});
-		}
-		this.cp.stdin.write( msg + "\n");
-		this._log.push(JSON.parse(msg));
+	callShoeboxCmd (cmd) {
+	    console.log(cmd);
+	    var cbor = cmd.toCBOR(); 
+	    var cbor64 = btoa(String.fromCharCode(...new Uint8Array(cbor)));
+	    console.log(cbor64);
+            this.cp.stdin.write( cbor64 + "\n");
 	}
+
 }
 
 const sbc = new ShoeboxChild()
