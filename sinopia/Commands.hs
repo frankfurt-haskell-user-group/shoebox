@@ -1,5 +1,3 @@
-module Shoebox.Command where
-
 import Data.Binary.Serialise.CBOR
 import Data.Binary.Serialise.CBOR.Encoding
 import Data.Binary.Serialise.CBOR.Decoding

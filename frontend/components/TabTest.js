@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Command, FileCommand } from '../commands';
+import { Command, FileCommand, QueryCommand } from '../commands';
 
 function showLog(log) {
   return log.map( (d) => 
@@ -26,7 +26,7 @@ class TabTest extends React.Component {
 				<button className="btn btn-primary btn-sm" onClick={ () => {
 					var cmds = $('#command')[0].value.split(/\s+/);
 					// this.props.sbc.callShoebox(cmds[0], cmds.length > 1 ? cmds[1] : null);
-				    var cmd = new Command(Command.CmdFc, new FileCommand(FileCommand.DeleteDB, "test-db"));
+				    var cmd = new Command(Command.CmdQuery, new QueryCommand(QueryCommand.DbInfo));
 				    this.props.sbc.callShoeboxCmd(cmd);
 				}}>
 				Execute

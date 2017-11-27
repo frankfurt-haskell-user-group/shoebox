@@ -8,7 +8,9 @@ module Shoebox.Util (
   showT,
   decodeFromText,
   encodeToText,
-  decodeFromCbor
+  decodeFromCbor,
+  encodeToCbor,
+  prettyQueryNode
   )
 where
 
@@ -24,6 +26,12 @@ import qualified Data.Text.Encoding as EN
 import System.IO
 import Data.Aeson
 import Data.Aeson.Encode.Pretty
+
+import qualified Data.HashMap.Lazy as M 
+import qualified Data.Vector as V
+
+import Shoebox.Data
+import Shoebox.QueryRules
 
 _cleanCR =  T.replace (T.pack "\r") (T.pack "\n") . T.replace (T.pack "\r\n") (T.pack "\n")  
 
@@ -70,3 +78,14 @@ encodeToCbor :: Serialise a => a -> T.Text
 encodeToCbor msg = let
   e = BL.toStrict (CBOR.serialise msg)
   in (decodeUtf8 . B64.encode) e
+
+prettyQueryNode qn = 
+  let _pd d = case d of
+                SbeText t -> String t
+                SbeTextArray ta -> Array . V.fromList $ map String ta
+                SbeNumber n -> Number (fromIntegral n)
+  in case qn of
+    QN (Right (Just d)) [] -> _pd d 
+    QN (Right (Just (SbeText t))) qns -> Object (M.fromList [(t, (Array . V.fromList) (fmap prettyQueryNode qns))])
+    QN _ [] -> Null
+ 
