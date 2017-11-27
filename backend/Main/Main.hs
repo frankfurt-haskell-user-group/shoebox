@@ -42,7 +42,7 @@ doCommand gs l = let
 
         Just (C.CmdFc C.GetAvailableDBs) -> do
             m <- availableDBs gs
-            return (gs, [m])
+            return (gs, [m, (buildMessage (R.ResFr (R.CurrentDBChanged (gsDbName gs))))])
 
         Just (C.CmdFc (C.CreateDB db)) -> do
             let gs' = GlobalState (gsDataDir gs) db newShoebox 

@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Command, FileCommand, QueryCommand } from '../commands';
+import { Response, FileResponse, QueryResponse } from '../response';
 
 function isArray(a) {
     return (!!a) && (a.constructor === Array);
@@ -47,15 +48,11 @@ function showDetail(i) {
 }
 
 function showResult(json) {
-  if (json != null && json.msg == "query-result") {
   return (
     <div style={{maxHeight: 280 + "px", overflowY: "scroll"}}>
-      {showDetail(json.para)}
+	  {showDetail(JSON.parse(json))}
     </div>
     );
-  } else {
-    return (<div>no result</div>);
-  }
 }
 
 class TabQuery extends React.Component {
@@ -100,7 +97,11 @@ class TabQuery extends React.Component {
     }
 
     update(e, d) {
-      this.setState({ jsonResult : d}); 
+	if (d.selector == Response.ResQuery && d.record[0].selector == QueryResponse.DbQuery)
+	{
+	    console.log("query: ", d.record[0].record[0]);
+            this.setState({ jsonResult : d.record[0].record[0]}); 
+	}
     }
 
     componentDidMount() {

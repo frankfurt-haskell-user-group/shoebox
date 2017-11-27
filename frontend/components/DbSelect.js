@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import ListGroup from './ListGroup';
 import { Command, FileCommand, QueryCommand } from '../commands';
+import { Response, FileResponse, QueryResponse } from '../response';
 
 function modalDialog(myId, myTitle, myContent, myFooter) {
 	return (
@@ -65,11 +66,14 @@ class DbSelect extends React.Component {
 	}
 
 	update(e, d) {
-		if (d.msg == "res") {
-			this.props.statusF(d.para);
+		if ( d.selector == Response.NoResponse ) {
+		    this.props.statusF("unknown result received");
 		}
-		if (d.msg == "dbs") {
-			this.setState({availableDBs : d.para.availableDBs, dbFile : d.para.dbFile }); 
+		if ( d.selector == Response.ResFr && d.record[0].selector == FileResponse.AvailableDBs) {
+		    this.setState({availableDBs : d.record[0].record[0]});
+		}
+		if ( d.selector == Response.ResFr && d.record[0].selector == FileResponse.CurrentDBChanged) {
+		    this.setState({dbFile : d.record[0].record[0]}); 
 		}
 	}
 

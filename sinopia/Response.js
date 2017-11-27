@@ -13,6 +13,7 @@ class CborStructItem {
     fromCBOR (ser_data) {
        var json_data = CBOR.decode(ser_data);
        this.fromData(json_data);
+       return this;
     }
 
     toCBOR () {
@@ -26,14 +27,15 @@ class CborStructItem {
 
     fromData (json_data) {
        this.setValue(json_data);
+       return this;
     }
 }
 
 class CborEnumItem extends CborStructItem {
     setValue(...args) {
-       if (arguments.length > 0) {
-         this.selector = arguments[0];
-         this.record = arguments.slice(0,1);
+       if (args.length > 0) {
+         this.selector = args[0];
+         this.record = args.slice(1);
        }
     }
 
@@ -44,6 +46,61 @@ class CborEnumItem extends CborStructItem {
 
 // response to file operations
 class FileResponse extends CborEnumItem {
+    toData () {
+       var arr_in = this.record.slice(); var arr_out = [];
+       if (this.selector == 0) {
+            arr_out.push(arr_in.shift());
+       }
+       if (this.selector == 1) {
+            arr_out.push(
+              arr_in.shift().map(function (a) { var arr_in = [a]; var arr_out = [];
+              arr_out.push(arr_in.shift());
+              return arr_out[0]; }) 
+            );
+       }
+       if (this.selector == 2) {
+            arr_out.push(arr_in.shift());
+       }
+       if (this.selector == 3) {
+            arr_out.push(arr_in.shift());
+       }
+       if (this.selector == 4) {
+            arr_out.push(arr_in.shift());
+       }
+       if (this.selector == 5) {
+            arr_out.push(arr_in.shift());
+       }
+       return [this.selector, ...arr_out];
+    }
+
+     fromData (json_data) {
+       var arr_in = json_data.slice(1); var arr_out = [];
+       if (json_data[0] == 0) {
+            arr_out.push(arr_in.shift());
+       }
+       if (json_data[0] == 1) {
+            arr_out.push(
+              arr_in.shift().map(function (a) { var arr_in = [a]; var arr_out = [];
+              arr_out.push(arr_in.shift());
+              return arr_out[0]; }) 
+            );
+       }
+       if (json_data[0] == 2) {
+            arr_out.push(arr_in.shift());
+       }
+       if (json_data[0] == 3) {
+            arr_out.push(arr_in.shift());
+       }
+       if (json_data[0] == 4) {
+            arr_out.push(arr_in.shift());
+       }
+       if (json_data[0] == 5) {
+            arr_out.push(arr_in.shift());
+       }
+       this.selector = json_data[0];
+       this.record = arr_out;
+       return this;
+     }
 }
 
 FileResponse.CurrentDBChanged = 0;   // the DB in use just changed
@@ -76,18 +133,19 @@ class Response extends CborEnumItem {
     }
 
      fromData (json_data) {
-       var arr_in = json_data.slice(0, 1); var arr_out = [];
+       var arr_in = json_data.slice(1); var arr_out = [];
        if (json_data[0] == 0) {
        }
        if (json_data[0] == 1) {
-            arr_out.push((new FileResponse()).fromData(arr_in.shift());
+            arr_out.push((new FileResponse()).fromData(arr_in.shift()));
        }
        if (json_data[0] == 2) {
-            arr_out.push((new QueryResponse()).fromData(arr_in.shift());
+            arr_out.push((new QueryResponse()).fromData(arr_in.shift()));
        }
        this.selector = json_data[0];
        this.record = arr_out;
-       }
+       return this;
+     }
 }
 
 Response.NoResponse = 0;   // response to NoOP command (is this needed?)

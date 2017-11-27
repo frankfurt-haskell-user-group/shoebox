@@ -13,6 +13,7 @@ class CborStructItem {
     fromCBOR (ser_data) {
        var json_data = CBOR.decode(ser_data);
        this.fromData(json_data);
+       return this;
     }
 
     toCBOR () {
@@ -26,14 +27,15 @@ class CborStructItem {
 
     fromData (json_data) {
        this.setValue(json_data);
+       return this;
     }
 }
 
 class CborEnumItem extends CborStructItem {
     setValue(...args) {
-       if (arguments.length > 0) {
-         this.selector = arguments[0];
-         this.record = arguments.slice(0,1);
+       if (args.length > 0) {
+         this.selector = args[0];
+         this.record = args.slice(1);
        }
     }
 
@@ -78,18 +80,19 @@ class Command extends CborEnumItem {
     }
 
      fromData (json_data) {
-       var arr_in = json_data.slice(0, 1); var arr_out = [];
+       var arr_in = json_data.slice(1); var arr_out = [];
        if (json_data[0] == 0) {
        }
        if (json_data[0] == 1) {
-            arr_out.push((new FileCommand()).fromData(arr_in.shift());
+            arr_out.push((new FileCommand()).fromData(arr_in.shift()));
        }
        if (json_data[0] == 2) {
-            arr_out.push((new QueryCommand()).fromData(arr_in.shift());
+            arr_out.push((new QueryCommand()).fromData(arr_in.shift()));
        }
        this.selector = json_data[0];
        this.record = arr_out;
-       }
+       return this;
+     }
 }
 
 Command.NoCommand = 0;   // no action requested
