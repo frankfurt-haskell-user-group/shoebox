@@ -32,7 +32,7 @@ import TabTest (tabTest)
 import DbSelect (dbSelect)
 
 import CommandDispatcher (dispatcher, CommandDispatcher)
- 
+
 -- tab component
 
 tabs :: forall props. Array (Tuple String ReactElement) -> ReactClass props
@@ -83,7 +83,7 @@ app = do
   where
   ui :: CommandDispatcher -> ReactElement
   ui d = D.div' [ createFactory appComponent { dispatcher: d } ]
-
+ 
   elm' :: forall eff. Eff (dom :: DOM | eff) Element
   elm' = do
     win <- window
