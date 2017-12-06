@@ -32,8 +32,16 @@ local function buildFrontend()
 	o, a = getOS()
 	lfs.chdir(glue.bin .. "/../frontend")
 --	os.execute("bower update")
+          
 	if o == "windows" then
-		os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 cmd /C npm run build")
+--		os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 cmd /C npm run build")
+
+		local cmd = ".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 cmd /C npm bin"
+                local f = assert(io.popen(cmd, 'r'))
+                local binDir = glue.trim(assert(f:read('*a')))
+		f:close()
+		os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 cmd /C " .. binDir .. "\\" .. "bower install")
+		os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 cmd /C npm install")
 	else
 		os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 bash -c \"npm run build\"")
 	end
@@ -44,6 +52,7 @@ local function initFrontend()
 	lfs.chdir(glue.bin .. "/../frontend")
 	if o == "windows" then
 		os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 cmd /C npm install")
+		os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 cmd /C npm install bower")
 	else
 		os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 bash -c \"npm install\"")
 	end
@@ -64,6 +73,17 @@ local function initBackend()
 	os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Stack.0617 setup --resolver lts-8.20")
 end
 
+local function runDevServer()
+	lfs.chdir(glue.bin .. "/../frontend")
+
+	o, a = getOS()
+	if o == "windows" then
+		os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 cmd /C npm run webpack-dev-server")
+        else
+		os.execute(".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Node.0817 npm run webpack-dev-server")
+	end
+end
+
 local function runApp()
 	lfs.chdir(glue.bin .. "/../frontend")
 
@@ -79,7 +99,7 @@ local function runApp()
 
 	-- execute electron
 	lfs.chdir("dist")
-	os.execute(".." .. osSep() .. ".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Electron.0817 index.html")
+	os.execute(".." .. osSep() .. ".." .. osSep() .. aioString() .. " http://www.hgamer3d.org/tools/Electron.0817 http://localhost:4008")
 end
 
 local function helpText()
@@ -95,6 +115,7 @@ command might be:
   backend
   backend-test
   backend-init
+  run-dev-server
   run
 	]])
 end
@@ -126,6 +147,10 @@ if #arg > 0 then
 		
 	elseif arg[1] == "run" then
 		runApp()
+		os.exit(0)
+
+	elseif arg[1] == "run-dev-server" then
+		runDevServer()
 		os.exit(0)
 
 	end

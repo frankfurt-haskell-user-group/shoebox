@@ -1,0 +1,18 @@
+{
+  "name": "shoebox",
+  "main": "",
+  "ignore": [
+    "*",
+    "!src/**/*"
+  ],
+  "dependencies": {
+    "purescript-react": "f2253e37ac",
+    "purescript-react-dom": "^4.1.0",
+    "purescript-console": "^3.0.0",
+    "purescript-node-child-process" : "^4.0.0",
+    "purescript-node-process" : "^4.0.0",
+      "purescript-jquery" : "^4.0.0",
+      "purescript-nullable" : "^3.0.0",
+      "purescript-argonaut-core" : "^3.1.0"
+  }
+}

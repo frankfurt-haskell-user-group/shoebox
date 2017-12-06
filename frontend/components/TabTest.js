@@ -14,7 +14,7 @@ class TabTest extends React.Component {
   	<div>
 		<div className="row">
 			<div className="col-sm-12">
-				<h3><small>Execute Cmd</small></h3>
+		<h3><small>Kommando { 'ausführen' }</small></h3>
 				commands: available-dbs, current-db, open-db db, save-db, save-db-as db, query text, ... <p/>
 			</div>
 		</div>
