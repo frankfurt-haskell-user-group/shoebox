@@ -32,6 +32,8 @@ import TabTest (tabTest)
 import DbSelect (dbSelect)
 
 import CommandDispatcher (dispatcher, CommandDispatcher)
+import DbStore as DBS
+import Data.StrMap as SM
 
 -- tab component
 
@@ -55,11 +57,11 @@ statusLine s = if (s == "")
                 , D.b [] [D.text s]
 	      ]
 
-appComponent :: forall props. ReactClass { dispatcher::CommandDispatcher | props }
+appComponent :: forall props eff. ReactClass { dbStore::DBS.DbStore eff, dispatcher::CommandDispatcher | props }
 appComponent = createClass $ spec unit \ctx -> do
   props <- getProps ctx
   pure $ D.div [P.className "container"] [
-    createFactory dbSelect {}
+    createFactory dbSelect { store: props.dbStore }
     , D.div [P.className "row middle-row"] [
         D.div [P.className "col-sm-12"] [
            createFactory (tabs [
@@ -78,12 +80,13 @@ appComponent = createClass $ spec unit \ctx -> do
 
 app :: forall eff. Eff (dom :: DOM, console::CONSOLE, cp::CHILD_PROCESS, exception::EXCEPTION | eff) Unit
 app = do
+  let dbs = DBS.DbStore { dbs: ["db-one", "db-two", "db-three"], currentDb: "db-one", notify: SM.fromFoldable [] }
   d <- dispatcher
-  void (elm' >>= render (ui d))
+  void (elm' >>= render (ui d dbs))
   where
-  ui :: CommandDispatcher -> ReactElement
-  ui d = D.div' [ createFactory appComponent { dispatcher: d } ]
- 
+  ui :: forall eff. CommandDispatcher -> DBS.DbStore eff -> ReactElement
+  ui d dbs = D.div' [ createFactory appComponent { dbStore: dbs, dispatcher: d } ]
+  
   elm' :: forall eff. Eff (dom :: DOM | eff) Element
   elm' = do
     win <- window

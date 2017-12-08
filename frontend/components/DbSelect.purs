@@ -3,12 +3,13 @@ module DbSelect (
    ) where
 
 import Prelude
-import React (ReactClass, ReactElement, spec, createClass, getProps, readState, writeState)
+import React (createFactory, ReactClass, ReactElement, spec, createClass, getProps, readState, writeState)
 import React (ReactRefs, ReactState, ReactProps, Read, Write, EventHandlerContext)
 import React.DOM.Dynamic as D
 import React.DOM.Props as P
 import Control.Monad.Eff (Eff(..))
 import Control.Monad.Eff.Class (liftEff)
+import DbStore as S
 
 
 actionButton :: String -> String -> String -> ReactElement
@@ -62,7 +63,7 @@ listGroup = createClass $ spec { activeItem: "" } \ ctx -> do
                    (map (\i -> D.button (
                          let cb = \e -> do
                                           _ <- writeState ctx { activeItem: i }
-                                          p.notifyChange i
+                                          p.notifyChange i 
                                           pure unit
                          in if s.activeItem == i
                               then
@@ -70,9 +71,10 @@ listGroup = createClass $ spec { activeItem: "" } \ ctx -> do
                               else
                                 [P.className "list-goup-item", P._type "button", P.onClick cb]
                         ) [D.text i] ) p.items)
-
-dbSelect :: forall props. ReactClass { | props }
+ 
+dbSelect :: forall eff props. ReactClass { store :: S.DbStore eff | props }
 dbSelect = createClass $ spec unit \ctx -> do
+  p <- getProps ctx
   pure $ D.div' [
           D.div [P.className "row top-row"] [
             D.div [P.className "col-sm-6"] [
@@ -96,7 +98,7 @@ dbSelect = createClass $ spec unit \ctx -> do
             ]
           ]
          , modalDialog "modalIdOpenDB" "Open Database"
-               (D.div' [])
+               (D.div' [ createFactory listGroup { items: let (S.DbStore s) = p.store in s.dbs, notifyChange: (\_ -> pure unit) } ])
                (D.div' [])
          , modalDialog "modalIdSaveAsDB" "Save Database as"
                (D.div' [])
