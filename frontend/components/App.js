@@ -1,9 +1,9 @@
 import '../css/base.css';
 import React, { Component } from 'react';
-import DbSelect from './DbSelect'
-import TabTest from './TabTest'
-import TabQuery from './TabQuery'
-import TabInterL from './TabInterL'
+import DbSelect from './DbSelect';
+import TabTest from './TabTest';
+import TabQuery from './TabQuery';
+import TabInterL from './TabInterL';
 
 function liTab(t, tab) {
   if (t.state.tab == tab) {
@@ -25,13 +25,13 @@ function getStatusLine(s) {
 
 function contentSwitch(t) {
   if (t.state.tab == "Test") {
-    return <TabTest sbc={t.props.sbc}/>
+      return <TabTest sbc={t.props.sbc}/>;
   }
   if (t.state.tab == "Query") {
-    return <TabQuery sbc={t.props.sbc}/>
+      return <TabQuery sbc={t.props.sbc}/>;
   }
   if (t.state.tab == "Inter-L") {
-    return <TabInterL sbc={t.props.sbc}/>
+      return <TabInterL sbc={t.props.sbc}/>;
   }
 }
 
