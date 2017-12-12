@@ -1,0 +1,14 @@
+{
+  "private" : true,
+  "name"    : "shoebox",
+
+  "scripts": {
+    "build": "pulp browserify --optimise --src-path components --to dist/bundle.js",
+    "serve": "http-server dist -P http://localhost:8081"
+  },
+
+  "dependencies": {
+    "http-server": "^0.9.0",
+    "pulp": "^11.0.0"
+  }
+}
