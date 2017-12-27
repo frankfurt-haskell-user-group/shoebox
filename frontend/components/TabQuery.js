@@ -97,11 +97,11 @@ class TabQuery extends React.Component {
     }
 
     update(e, d) {
-	if (d.selector == Response.ResQuery && d.record[0].selector == QueryResponse.DbQuery)
-	{
-	    console.log("query: ", d.record[0].record[0]);
-            this.setState({ jsonResult : d.record[0].record[0]}); 
-	}
+      if (d.selector == Response.ResQuery && d.record[0].selector == QueryResponse.DbQuery)
+      {
+          console.log("query: ", d.record[0].record[0]);
+                this.setState({ jsonResult : d.record[0].record[0]}); 
+      }
     }
 
     componentDidMount() {

@@ -29,7 +29,7 @@ class CborStructItem {
     }
 
     fromData (json_data) {
-       this.setValue(json_data);
+       this.setValue(...json_data);
        return this;
     }
 }

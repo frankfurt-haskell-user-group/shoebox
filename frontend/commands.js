@@ -29,7 +29,7 @@ class CborStructItem {
     }
 
     fromData (json_data) {
-       this.setValue(json_data);
+       this.setValue(...json_data);
        return this;
     }
 }
@@ -108,8 +108,6 @@ Command.NoCommand = 0;   // no action requested
 Command.CmdFc = 1;   // one of the file commands
 Command.CmdQuery = 2;   // one of the query commands
 Command.RunTest = 3;   // arbitrary text, send as test command
-
-
 
 module.exports = { QueryCommand: QueryCommand, FileCommand: FileCommand, Command: Command };
 

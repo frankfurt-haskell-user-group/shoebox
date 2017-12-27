@@ -28,9 +28,9 @@ class DbSelect extends React.Component {
 
     openDatabase() {
     	var dbName = this.fileWhichWillBeOpened;
-		this.props.sbc.callShoeboxCmd(new Command(Command.CmdFc, new FileCommand(FileCommand.OpenDB, dbName)));
-		this.setState({dbFile : dbName});
-		$('#modalIdOpenDB').modal('hide');	
+		  this.props.sbc.callShoeboxCmd(new Command(Command.CmdFc, new FileCommand(FileCommand.OpenDB, dbName)));
+		  this.setState({dbFile : dbName});
+		  $('#modalIdOpenDB').modal('hide');	
     }
 
     deleteDatabase() {
@@ -38,22 +38,22 @@ class DbSelect extends React.Component {
     	if (this.state.availableDBs.length >= 2) {
 		    // delete will open a new db
 		    this.props.sbc.callShoeboxCmd(new Command(Command.CmdFc, new FileCommand(FileCommand.DeleteDB, this.state.dbFile))); 
-		} else {
+		  } else {
 		    this.props.statusF("cannot delete last DB");
-		}
-		$('#modalIdDeleteDB').modal('hide');	
+		  }
+		  $('#modalIdDeleteDB').modal('hide');	
     }
 
     newDatabase() {
     	var dbName = $('#newDbName')[0].value;
-	this.props.sbc.callShoeboxCmd(new Command(Command.CmdFc, new FileCommand(FileCommand.CreateDB, dbName))); 
-	$('#modalIdNewDB').modal('hide');	
+	    this.props.sbc.callShoeboxCmd(new Command(Command.CmdFc, new FileCommand(FileCommand.CreateDB, dbName))); 
+	    $('#modalIdNewDB').modal('hide');	
     }
 
     saveAsDatabase() {
     	var dbName = $('#newSaveAsDbName')[0].value;
-	this.props.sbc.callShoeboxCmd(new Command(Command.CmdFc, new FileCommand(FileCommand.SaveDBAs, dbName))); 
-	$('#modalIdSaveAsDB').modal('hide');	
+	    this.props.sbc.callShoeboxCmd(new Command(Command.CmdFc, new FileCommand(FileCommand.SaveDBAs, dbName))); 
+    	$('#modalIdSaveAsDB').modal('hide');	
     }
 
     saveDatabase() {
