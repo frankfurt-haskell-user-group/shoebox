@@ -25,6 +25,7 @@ data QueryResponse = DbInfo Text -- ^ detailed DB info as JSON text
 data Response = NoResponse -- ^ response to NoOP command (is this needed?) 
     | ResFr FileResponse -- ^ response to a file command 
     | ResQuery QueryResponse -- ^ response to a query command 
+    | TestAnswer Text -- ^ arbitrary test answer as text 
     deriving (Eq, Read, Show)
 
 instance Serialise FileResponse where
@@ -59,6 +60,7 @@ instance Serialise Response where
     encode (NoResponse) = encodeListLen 1 <>  encode (0::Int) 
     encode (ResFr v1) = encodeListLen 2 <>  encode (1::Int) <> encode v1
     encode (ResQuery v1) = encodeListLen 2 <>  encode (2::Int) <> encode v1
+    encode (TestAnswer v1) = encodeListLen 2 <>  encode (3::Int) <> encode v1
     decode = do
         decodeListLen
         i <- decode :: Decoder s Int
@@ -66,4 +68,5 @@ instance Serialise Response where
             0 -> (pure NoResponse)
             1 -> (ResFr <$> decode)
             2 -> (ResQuery <$> decode)
+            3 -> (TestAnswer <$> decode)
 

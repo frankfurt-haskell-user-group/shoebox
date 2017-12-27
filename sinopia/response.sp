@@ -19,4 +19,5 @@ enum Response {
      NoResponse;               // response to NoOP command (is this needed?)
      ResFr FileResponse;       // response to a file command
      ResQuery QueryResponse;   // response to a query command
+     TestAnswer Text;          // arbitrary test answer as text
 }

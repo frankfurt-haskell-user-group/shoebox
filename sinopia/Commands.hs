@@ -27,6 +27,7 @@ data QueryCommand = DbInfo -- ^ get detailed info on a database
 data Command = NoCommand -- ^ no action requested 
     | CmdFc FileCommand -- ^ one of the file commands 
     | CmdQuery QueryCommand -- ^ one of the query commands 
+    | RunTest Text -- ^ arbitrary text, send as test command 
     deriving (Eq, Read, Show)
 
 instance Serialise FileCommand where
@@ -63,6 +64,7 @@ instance Serialise Command where
     encode (NoCommand) = encodeListLen 1 <>  encode (0::Int) 
     encode (CmdFc v1) = encodeListLen 2 <>  encode (1::Int) <> encode v1
     encode (CmdQuery v1) = encodeListLen 2 <>  encode (2::Int) <> encode v1
+    encode (RunTest v1) = encodeListLen 2 <>  encode (3::Int) <> encode v1
     decode = do
         decodeListLen
         i <- decode :: Decoder s Int
@@ -70,4 +72,5 @@ instance Serialise Command where
             0 -> (pure NoCommand)
             1 -> (CmdFc <$> decode)
             2 -> (CmdQuery <$> decode)
+            3 -> (RunTest <$> decode)
 

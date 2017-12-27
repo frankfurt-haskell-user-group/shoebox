@@ -92,6 +92,9 @@ doCommand gs l = let
             let r = queryEntry (gsShoebox gs) (QN (Right (Just (SbeText q))) [])
             return (gs, [buildMessage (R.ResQuery (R.DbQuery (encodeToText (prettyQueryNode r))))])
 
+        Just (C.RunTest q) -> do
+            return (gs, [buildMessage (R.TestAnswer q)])
+
         _ -> return $ (gs, [buildMessage R.NoResponse])
 
 

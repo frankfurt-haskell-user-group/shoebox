@@ -129,6 +129,9 @@ class Response extends CborEnumItem {
        if (this.selector == 2) {
             arr_out.push(arr_in.shift().toData());
        }
+       if (this.selector == 3) {
+            arr_out.push(arr_in.shift());
+       }
        return [this.selector, ...arr_out];
     }
 
@@ -142,6 +145,9 @@ class Response extends CborEnumItem {
        if (json_data[0] == 2) {
             arr_out.push((new QueryResponse()).fromData(arr_in.shift()));
        }
+       if (json_data[0] == 3) {
+            arr_out.push(arr_in.shift());
+       }
        this.selector = json_data[0];
        this.record = arr_out;
        return this;
@@ -151,4 +157,5 @@ class Response extends CborEnumItem {
 Response.NoResponse = 0;   // response to NoOP command (is this needed?)
 Response.ResFr = 1;   // response to a file command
 Response.ResQuery = 2;   // response to a query command
+Response.TestAnswer = 3;   // arbitrary test answer as text
 

@@ -79,6 +79,9 @@ class Command extends CborEnumItem {
        if (this.selector == 2) {
             arr_out.push(arr_in.shift().toData());
        }
+       if (this.selector == 3) {
+            arr_out.push(arr_in.shift());
+       }
        return [this.selector, ...arr_out];
     }
 
@@ -92,6 +95,9 @@ class Command extends CborEnumItem {
        if (json_data[0] == 2) {
             arr_out.push((new QueryCommand()).fromData(arr_in.shift()));
        }
+       if (json_data[0] == 3) {
+            arr_out.push(arr_in.shift());
+       }
        this.selector = json_data[0];
        this.record = arr_out;
        return this;
@@ -101,6 +107,7 @@ class Command extends CborEnumItem {
 Command.NoCommand = 0;   // no action requested
 Command.CmdFc = 1;   // one of the file commands
 Command.CmdQuery = 2;   // one of the query commands
+Command.RunTest = 3;   // arbitrary text, send as test command
 
 
 

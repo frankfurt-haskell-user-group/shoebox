@@ -14,8 +14,7 @@ class TabTest extends React.Component {
   	<div>
 		<div className="row">
 			<div className="col-sm-12">
-				<h3><small>Execute Cmd</small></h3>
-				commands: available-dbs, current-db, open-db db, save-db, save-db-as db, query text, ... <p/>
+				<h3><small>Execute Test Cmd</small></h3>
 			</div>
 		</div>
 		<div className="row">
@@ -24,9 +23,8 @@ class TabTest extends React.Component {
 			</div>
 			<div className="col-sm-4">
 				<button className="btn btn-primary btn-sm" onClick={ () => {
-					var cmds = $('#command')[0].value.split(/\s+/);
-					// this.props.sbc.callShoebox(cmds[0], cmds.length > 1 ? cmds[1] : null);
-				    var cmd = new Command(Command.CmdQuery, new QueryCommand(QueryCommand.DbInfo));
+					var testCmd = $('#command')[0].value;
+				    var cmd = new Command(Command.RunTest, testCmd);
 				    this.props.sbc.callShoeboxCmd(cmd);
 				}}>
 				Execute

@@ -11,14 +11,15 @@ enum FileCommand {
 
 // commands for database query operations
 enum QueryCommand {
-     DbInfo;         // get detailed info on a database
-     DbQuery Text;   // query a database for an entry
+  DbInfo;          // get detailed info on a database
+  DbQuery Text;    // query a database for an entry
 }
 
 // all possible commands for the shoebox module
 // gathered from the different command sub types
 enum Command {
-     	NoCommand;               // no action requested
-        CmdFc FileCommand;       // one of the file commands
+  NoCommand;               // no action requested
+  CmdFc FileCommand;       // one of the file commands
 	CmdQuery QueryCommand;   // one of the query commands
+  RunTest Text;     // arbitrary text, send as test command
 }
