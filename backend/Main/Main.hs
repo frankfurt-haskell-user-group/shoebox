@@ -8,7 +8,7 @@ import Shoebox.Data
 import qualified Shoebox.Command as C
 import qualified Shoebox.Response as R
 import Shoebox.Util
-import Shoebox.QueryRules
+import Shoebox.TranslationRules
 
 import qualified Data.Text as T
 import Data.Maybe
@@ -80,16 +80,16 @@ doCommand gs l = let
 
         Just (C.CmdQuery C.DbInfo) -> do
             let sb = gsShoebox gs
-            let queries = sbQueries sb
+            let translations = sbTranslations sb
             let (ShoeboxData dmap)  = sbData sb
             let dataInfo sbdata = (desc, schema) where
                     desc = sbdbDescription sbdata
                     schema = sbdbSchema sbdata
             let dbInfo = fmap dataInfo dmap
-            return (gs, [buildMessage (R.ResQuery (R.DbInfo (encodeToText (dbInfo, queries))))])
+            return (gs, [buildMessage (R.ResQuery (R.DbInfo (encodeToText (dbInfo, translations))))])
 
         Just (C.CmdQuery (C.DbQuery q)) -> do
-            let r = queryEntry (gsShoebox gs) (QN (Right (Just (SbeText q))) [])
+            let r = translateEntry (gsShoebox gs) (TRN (Right (Just (SbeText q))) [])
             return (gs, [buildMessage (R.ResQuery (R.DbQuery (encodeToText (prettyQueryNode r))))])
 
         Just (C.RunTest q) -> do

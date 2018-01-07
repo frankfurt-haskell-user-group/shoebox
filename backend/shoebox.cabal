@@ -12,7 +12,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:       Shoebox.Parser, Shoebox.Data, Shoebox.QueryRules, Shoebox.Interface, Shoebox.Util, Shoebox.Command, Shoebox.Response
+  exposed-modules:       Shoebox.Parser, Shoebox.Data, Shoebox.TranslationRules, Shoebox.Interface, Shoebox.Util, Shoebox.Command, Shoebox.Response
   build-depends:       base >=4.9 && <4.10
                      , containers
                      , text

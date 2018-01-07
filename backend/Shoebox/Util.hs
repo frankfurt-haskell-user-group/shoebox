@@ -31,7 +31,7 @@ import qualified Data.HashMap.Lazy as M
 import qualified Data.Vector as V
 
 import Shoebox.Data
-import Shoebox.QueryRules
+import Shoebox.TranslationRules
 
 _cleanCR =  T.replace (T.pack "\r") (T.pack "\n") . T.replace (T.pack "\r\n") (T.pack "\n")  
 
@@ -85,7 +85,7 @@ prettyQueryNode qn =
                 SbeTextArray ta -> Array . V.fromList $ map String ta
                 SbeNumber n -> Number (fromIntegral n)
   in case qn of
-    QN (Right (Just d)) [] -> _pd d 
-    QN (Right (Just (SbeText t))) qns -> Object (M.fromList [(t, (Array . V.fromList) (fmap prettyQueryNode qns))])
-    QN _ [] -> Null
+    TRN (Right (Just d)) [] -> _pd d 
+    TRN (Right (Just (SbeText t))) qns -> Object (M.fromList [(t, (Array . V.fromList) (fmap prettyQueryNode qns))])
+    TRN _ [] -> Null
  
