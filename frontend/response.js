@@ -3,6 +3,7 @@ import CBOR from './other_libs/cbor';
 
 (function (global, undefined) { "use strict";
 
+
 class CborStructItem {
 
     constructor(...args) {
@@ -113,12 +114,90 @@ FileResponse.CreatedDB = 3;   // just created the DB
 FileResponse.DeletedDB = 4;   // just deleted the DB
 FileResponse.SavedDB = 5;   // just saved the DB
 
+// response on one word
+class WordResponse extends CborEnumItem {
+    toData () {
+       var arr_in = this.record.slice(); var arr_out = [];
+       if (this.selector == 0) {
+            arr_out.push(
+              arr_in.shift().map(function (a) { var arr_in = [a]; var arr_out = [];
+              arr_out.push(arr_in.shift());
+              return arr_out[0]; }) 
+            );
+       }
+       if (this.selector == 1) {
+            arr_out.push(
+              arr_in.shift().map(function (a) { var arr_in = [a]; var arr_out = [];
+              arr_out.push(arr_in.shift());
+              return arr_out[0]; }) 
+            );
+       }
+       return [this.selector, ...arr_out];
+    }
+
+     fromData (json_data) {
+       var arr_in = json_data.slice(1); var arr_out = [];
+       if (json_data[0] == 0) {
+            arr_out.push(
+              arr_in.shift().map(function (a) { var arr_in = [a]; var arr_out = [];
+              arr_out.push(arr_in.shift());
+              return arr_out[0]; }) 
+            );
+       }
+       if (json_data[0] == 1) {
+            arr_out.push(
+              arr_in.shift().map(function (a) { var arr_in = [a]; var arr_out = [];
+              arr_out.push(arr_in.shift());
+              return arr_out[0]; }) 
+            );
+       }
+       this.selector = json_data[0];
+       this.record = arr_out;
+       return this;
+     }
+}
+
+WordResponse.WREntries = 0;   // answers for this word
+WordResponse.WRPossibleDbs = 1;   // possible DB's where entries could be done
+
 // response to database queries
 class QueryResponse extends CborEnumItem {
+    toData () {
+       var arr_in = this.record.slice(); var arr_out = [];
+       if (this.selector == 0) {
+            arr_out.push(arr_in.shift());
+       }
+       if (this.selector == 1) {
+            arr_out.push(arr_in.shift());
+       }
+       if (this.selector == 2) {
+            arr_out.push(arr_in.shift());
+            arr_out.push(arr_in.shift().toData());
+       }
+       return [this.selector, ...arr_out];
+    }
+
+     fromData (json_data) {
+       var arr_in = json_data.slice(1); var arr_out = [];
+       if (json_data[0] == 0) {
+            arr_out.push(arr_in.shift());
+       }
+       if (json_data[0] == 1) {
+            arr_out.push(arr_in.shift());
+       }
+       if (json_data[0] == 2) {
+            arr_out.push(arr_in.shift());
+            arr_out.push((new WordResponse()).fromData(arr_in.shift()));
+       }
+       this.selector = json_data[0];
+       this.record = arr_out;
+       return this;
+     }
 }
 
 QueryResponse.DbInfo = 0;   // detailed DB info as JSON text
 QueryResponse.DbQuery = 1;   // query answer as JSON text
+QueryResponse.WordQuery = 2;   // id of query, answer for word query 
 
 // response to commands
 class Response extends CborEnumItem {
@@ -161,7 +240,6 @@ Response.NoResponse = 0;   // response to NoOP command (is this needed?)
 Response.ResFr = 1;   // response to a file command
 Response.ResQuery = 2;   // response to a query command
 Response.TestAnswer = 3;   // arbitrary test answer as text
-
 
 
 module.exports = { QueryResponse: QueryResponse, FileResponse: FileResponse, Response: Response };

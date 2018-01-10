@@ -13,6 +13,7 @@ enum FileCommand {
 enum QueryCommand {
   DbInfo;          // get detailed info on a database
   DbQuery Text;    // query a database for an entry
+  WordQuery Text Text; // (id of query) (word of query)
 }
 
 // all possible commands for the shoebox module

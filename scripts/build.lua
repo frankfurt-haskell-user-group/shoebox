@@ -96,9 +96,37 @@ command might be:
   backend
   backend-test
   backend-init
+  sinopia
   run
 	]])
 end
+
+local function applyTemplate(templateFile, includeFile, outFile, tFilter, iFilter)
+  local tHandle = assert(io.open(templateFile, "r"), "applyTemplate template file not found!")
+  local iHandle = assert(io.open(includeFile, "r"), "applyTemplate include file not found!")
+  local oHandle = assert(io.open(outFile, "w"), "applyTemplate out file could not be created!")
+
+  for line in tHandle:lines() do
+    -- include-file
+    if line:find("<include_file>") then
+      for line2 in iHandle:lines() do
+        if not iFilter or iFilter(line2) then
+          oHandle:write(line2 .. "\n")
+        end
+      end
+    -- template text
+    else
+      if not oFilter or oFilter(line) then
+        oHandle:write(line .. "\n")
+      end
+    end
+  end
+
+  tHandle:close()
+  iHandle:close()
+  oHandle:close()
+end
+
 
 -- main script
 
@@ -124,7 +152,21 @@ if #arg > 0 then
 	elseif arg[1] == "backend-test" then
 		testBackend()
 		os.exit(0)
-		
+
+	elseif arg[1] == "sinopia" then
+    os.execute(aioString() .. " http://www.hgamer3d.org/tools/Sinopia.0118 -i sinopia/commands.sp -g Haskell -o sinopia/Commands.hs")
+    os.execute(aioString() .. " http://www.hgamer3d.org/tools/Sinopia.0118 -i sinopia/response.sp -g Haskell -o sinopia/Response.hs")
+    os.execute(aioString() .. " http://www.hgamer3d.org/tools/Sinopia.0118 -i sinopia/commands.sp -g JavaScript -o sinopia/Commands.js")
+    os.execute(aioString() .. " http://www.hgamer3d.org/tools/Sinopia.0118 -i sinopia/response.sp -g JavaScript -o sinopia/Response.js")
+    applyTemplate("sinopia/response_js.tmpl", "sinopia/Response.js", "frontend/response.js", nil, function (l) return not l:find("import CBOR from") end)
+    applyTemplate("sinopia/commands_js.tmpl", "sinopia/Commands.js", "frontend/commands.js", nil, function (l) return not l:find("import CBOR from") end)
+    applyTemplate("sinopia/response_hs.tmpl", "sinopia/Response.hs", "backend/Shoebox/Response.hs", nil, nil)
+    applyTemplate("sinopia/command_hs.tmpl", "sinopia/Commands.hs", "backend/Shoebox/Command.hs", nil, nil)
+    buildBackend()
+    lfs.chdir("..")
+    buildFrontend()
+		os.exit(0)
+
 	elseif arg[1] == "run" then
 		runApp()
 		os.exit(0)

@@ -3,6 +3,7 @@ import CBOR from './other_libs/cbor';
 
 (function (global, undefined) { "use strict";
 
+
 class CborStructItem {
 
     constructor(...args) {
@@ -65,6 +66,7 @@ class QueryCommand extends CborEnumItem {
 
 QueryCommand.DbInfo = 0;   // get detailed info on a database
 QueryCommand.DbQuery = 1;   // query a database for an entry
+QueryCommand.WordQuery = 2;   // (id of query) (word of query)
 
 // all possible commands for the shoebox module
 // gathered from the different command sub types
@@ -108,6 +110,7 @@ Command.NoCommand = 0;   // no action requested
 Command.CmdFc = 1;   // one of the file commands
 Command.CmdQuery = 2;   // one of the query commands
 Command.RunTest = 3;   // arbitrary text, send as test command
+
 
 module.exports = { QueryCommand: QueryCommand, FileCommand: FileCommand, Command: Command };
 

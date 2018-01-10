@@ -8,10 +8,17 @@ enum FileResponse {
      SavedDB Text;             // just saved the DB
 }
 
+// response on one word
+enum WordResponse {
+     WREntries List(Text);     // answers for this word
+     WRPossibleDbs List(Text); // possible DB's where entries could be done
+}
+
 // response to database queries
 enum QueryResponse {
      DbInfo Text;              // detailed DB info as JSON text
      DbQuery Text;             // query answer as JSON text
+     WordQuery Text WordResponse; // id of query, answer for word query 
 }
 
 // response to commands

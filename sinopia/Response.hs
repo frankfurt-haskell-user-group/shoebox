@@ -16,9 +16,15 @@ data FileResponse = CurrentDBChanged Text -- ^ the DB in use just changed
     | SavedDB Text -- ^ just saved the DB 
     deriving (Eq, Read, Show)
 
+-- | response on one word
+data WordResponse = WREntries [Text] -- ^ answers for this word 
+    | WRPossibleDbs [Text] -- ^ possible DB's where entries could be done 
+    deriving (Eq, Read, Show)
+
 -- | response to database queries
 data QueryResponse = DbInfo Text -- ^ detailed DB info as JSON text 
     | DbQuery Text -- ^ query answer as JSON text 
+    | WordQuery Text WordResponse -- ^ id of query, answer for word query  
     deriving (Eq, Read, Show)
 
 -- | response to commands
@@ -46,15 +52,27 @@ instance Serialise FileResponse where
             4 -> (DeletedDB <$> decode)
             5 -> (SavedDB <$> decode)
 
+instance Serialise WordResponse where
+    encode (WREntries v1) = encodeListLen 2 <>  encode (0::Int) <> encode v1
+    encode (WRPossibleDbs v1) = encodeListLen 2 <>  encode (1::Int) <> encode v1
+    decode = do
+        decodeListLen
+        i <- decode :: Decoder s Int
+        case i of
+            0 -> (WREntries <$> decode)
+            1 -> (WRPossibleDbs <$> decode)
+
 instance Serialise QueryResponse where
     encode (DbInfo v1) = encodeListLen 2 <>  encode (0::Int) <> encode v1
     encode (DbQuery v1) = encodeListLen 2 <>  encode (1::Int) <> encode v1
+    encode (WordQuery v1 v2) = encodeListLen 3 <>  encode (2::Int) <> encode v1<> encode v2
     decode = do
         decodeListLen
         i <- decode :: Decoder s Int
         case i of
             0 -> (DbInfo <$> decode)
             1 -> (DbQuery <$> decode)
+            2 -> (WordQuery <$> decode <*> decode)
 
 instance Serialise Response where
     encode (NoResponse) = encodeListLen 1 <>  encode (0::Int) 

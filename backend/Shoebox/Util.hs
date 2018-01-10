@@ -10,7 +10,7 @@ module Shoebox.Util (
   encodeToText,
   decodeFromCbor,
   encodeToCbor,
-  prettyQueryNode
+  prettyTRNode
   )
 where
 
@@ -33,7 +33,7 @@ import qualified Data.Vector as V
 import Shoebox.Data
 import Shoebox.TranslationRules
 
-_cleanCR =  T.replace (T.pack "\r") (T.pack "\n") . T.replace (T.pack "\r\n") (T.pack "\n")  
+_cleanCR =  T.replace (T.pack "\r") (T.pack "\n") . T.replace (T.pack "\r\n") (T.pack "\n")
 
 readUtf8File :: T.Text -> IO T.Text
 readUtf8File fileName = do
@@ -65,7 +65,7 @@ decodeFromText :: FromJSON a => T.Text -> Maybe a
 decodeFromText = Data.Aeson.decode . BL.fromStrict . EN.encodeUtf8
 
 encodeToText :: ToJSON a => a -> T.Text
-encodeToText = EN.decodeUtf8 . BL.toStrict . encodePretty 
+encodeToText = EN.decodeUtf8 . BL.toStrict . encodePretty
 
 decodeFromCbor :: Serialise a => T.Text -> Maybe a
 decodeFromCbor base64 = let
@@ -79,13 +79,13 @@ encodeToCbor msg = let
   e = BL.toStrict (CBOR.serialise msg)
   in (decodeUtf8 . B64.encode) e
 
-prettyQueryNode qn = 
+prettyTRNode trn =
   let _pd d = case d of
                 SbeText t -> String t
                 SbeTextArray ta -> Array . V.fromList $ map String ta
                 SbeNumber n -> Number (fromIntegral n)
-  in case qn of
-    TRN (Right (Just d)) [] -> _pd d 
-    TRN (Right (Just (SbeText t))) qns -> Object (M.fromList [(t, (Array . V.fromList) (fmap prettyQueryNode qns))])
+  in case trn of
+    TRN (Right (Just d)) [] -> _pd d
+    TRN (Right (Just (SbeText t))) qns -> Object (M.fromList [(t, (Array . V.fromList) (fmap prettyTRNode qns))])
     TRN _ [] -> Null
- 
+
