@@ -8,7 +8,7 @@ import Shoebox.Data
 import qualified Shoebox.Command as C
 import qualified Shoebox.Response as R
 import Shoebox.Util
-import Shoebox.TranslationRules
+import Shoebox.Translation
 
 import qualified Data.Text as T
 import Data.Maybe
@@ -89,7 +89,7 @@ doCommand gs l = let
             return (gs, [buildMessage (R.ResQuery (R.DbInfo (encodeToText (dbInfo, translations))))])
 
         Just (C.CmdQuery (C.DbQuery q)) -> do
-            let r = translateEntry (gsShoebox gs) (TRN (Right (Just (SbeText q))) [])
+            let r = translateEntry (gsShoebox gs) (SbeText q)
             return (gs, [buildMessage (R.ResQuery (R.DbQuery (encodeToText (prettyTRNode r))))])
 
         Just (C.RunTest q) -> do
@@ -100,7 +100,7 @@ doCommand gs l = let
                   ts = T.split (==' ') q
                   i = head ts
                   t = tail ts
-                  r = translateEntry (gsShoebox gs) (TRN (Right (Just (SbeText (t !! 0)))) [])
+                  r = translateEntry (gsShoebox gs) (SbeText (t !! 0))
                 in return (gs, [buildMessage (R.TestAnswer ( (T.concat [i, " ", encodeToText (prettyTRNode r)])))])
               else
                 return (gs, [buildMessage (R.TestAnswer q)])

@@ -24,7 +24,7 @@ import Data.Aeson
 import GHC.Generics
 
 import Shoebox.Data
-import Shoebox.TranslationRules
+import Shoebox.Translation
 import Shoebox.Parser
 import Shoebox.Util
 

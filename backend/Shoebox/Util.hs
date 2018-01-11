@@ -18,6 +18,7 @@ import Data.ByteString.Base64 as B64
 import Data.Text.Encoding
 import Data.Binary.Serialise.CBOR as CBOR
 import Data.Maybe
+import Data.List (intersperse)
 
 import qualified Data.Text as T
 import qualified Data.ByteString as BS
@@ -31,7 +32,7 @@ import qualified Data.HashMap.Lazy as M
 import qualified Data.Vector as V
 
 import Shoebox.Data
-import Shoebox.TranslationRules
+import Shoebox.Translation
 
 _cleanCR =  T.replace (T.pack "\r") (T.pack "\n") . T.replace (T.pack "\r\n") (T.pack "\n")
 
@@ -79,13 +80,24 @@ encodeToCbor msg = let
   e = BL.toStrict (CBOR.serialise msg)
   in (decodeUtf8 . B64.encode) e
 
-prettyTRNode trn =
-  let _pd d = case d of
+prettyTRNode :: TRNode -> Value
+prettyTRNode trn = let
+
+  _pd d = case d of
                 SbeText t -> String t
-                SbeTextArray ta -> Array . V.fromList $ map String ta
+                SbeTextArray ta -> String $ T.concat $ intersperse ", " ta
                 SbeNumber n -> Number (fromIntegral n)
+  _pd' d = case d of
+                SbeText t -> t
+                SbeTextArray ta -> T.concat $ intersperse ", " ta
+                SbeNumber n -> T.pack (show n)
+
+  avl = Array . V.fromList
+  avl'  = avl . map avl
+
+  pl l = avl' (map (map _pd) (esFromTrl l))
+
   in case trn of
-    TRN (Right (Just d)) [] -> _pd d
-    TRN (Right (Just (SbeText t))) qns -> Object (M.fromList [(t, (Array . V.fromList) (fmap prettyTRNode qns))])
-    TRN _ [] -> Null
+    TRN l [] -> Object (M.fromList [(_pd' (trlSource l), pl l)])
+    TRN l ns -> Object (M.fromList [(_pd' (trlSource l), avl' (map (map prettyTRNode) ns))])
 
