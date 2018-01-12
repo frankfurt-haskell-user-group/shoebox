@@ -14,6 +14,8 @@ enum QueryCommand {
   DbInfo;          // get detailed info on a database
   DbQuery Text;    // query a database for an entry
   WordQuery Text Text; // (id of query) (word of query)
+  QueryTransCols;  // query column information (translation steps)
+  QueryTransWord Text Text;  // query translation of word, id, word
 }
 
 // all possible commands for the shoebox module

@@ -170,6 +170,13 @@ class QueryResponse extends CborEnumItem {
             arr_out.push(arr_in.shift());
             arr_out.push(arr_in.shift().toData());
        }
+       if (this.selector == 3) {
+            arr_out.push(arr_in.shift());
+       }
+       if (this.selector == 4) {
+            arr_out.push(arr_in.shift());
+            arr_out.push(arr_in.shift());
+       }
        return [this.selector, ...arr_out];
     }
 
@@ -185,6 +192,13 @@ class QueryResponse extends CborEnumItem {
             arr_out.push(arr_in.shift());
             arr_out.push((new WordResponse()).fromData(arr_in.shift()));
        }
+       if (json_data[0] == 3) {
+            arr_out.push(arr_in.shift());
+       }
+       if (json_data[0] == 4) {
+            arr_out.push(arr_in.shift());
+            arr_out.push(arr_in.shift());
+       }
        this.selector = json_data[0];
        this.record = arr_out;
        return this;
@@ -194,6 +208,8 @@ class QueryResponse extends CborEnumItem {
 QueryResponse.DbInfo = 0;   // detailed DB info as JSON text
 QueryResponse.DbQuery = 1;   // query answer as JSON text
 QueryResponse.WordQuery = 2;   // id of query, answer for word query 
+QueryResponse.QueryTransCols = 3;   // list of translation column info as JSON text
+QueryResponse.QueryTransWord = 4;   // query translation of word answer, id, JSON text
 
 // response to commands
 class Response extends CborEnumItem {

@@ -10,7 +10,8 @@ module Shoebox.Util (
   encodeToText,
   decodeFromCbor,
   encodeToCbor,
-  prettyTRNode
+  prettyTRNode,
+  getCols
   )
 where
 
@@ -33,6 +34,7 @@ import qualified Data.Vector as V
 
 import Shoebox.Data
 import Shoebox.Translation
+import Shoebox.Response as R
 
 _cleanCR =  T.replace (T.pack "\r") (T.pack "\n") . T.replace (T.pack "\r\n") (T.pack "\n")
 
@@ -101,3 +103,8 @@ prettyTRNode trn = let
     TRN l [] -> Object (M.fromList [(_pd' (trlSource l), pl l)])
     TRN l ns -> Object (M.fromList [(_pd' (trlSource l), avl' (map (map prettyTRNode) ns))])
 
+getCols :: Shoebox -> Value
+getCols sb = let
+  trs = sbTranslations sb
+  ob tr = Object (M.fromList [("colName", String (sbdtMemo (trTargetTag tr))), ("lookups", toJSON (trLookup tr))])
+  in ((Array . V.fromList) (map ob trs))

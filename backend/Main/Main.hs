@@ -92,18 +92,16 @@ doCommand gs l = let
             let r = translateEntry (gsShoebox gs) (SbeText q)
             return (gs, [buildMessage (R.ResQuery (R.DbQuery (encodeToText (prettyTRNode r))))])
 
+        Just (C.CmdQuery C.QueryTransCols) -> do
+            let cols = getCols (gsShoebox gs)
+            return (gs, [buildMessage (R.ResQuery (R.QueryTransCols (encodeToText cols)))])
+
+        Just (C.CmdQuery (C.QueryTransWord idQ word)) -> do
+            let r = translateEntry (gsShoebox gs) (SbeText word)
+            return (gs, [buildMessage (R.ResQuery (R.QueryTransWord idQ (encodeToText (prettyTRNode r))))])
+
         Just (C.RunTest q) -> do
-            -- check if format "id-..."
-            if (T.take 3 q) == "id-"
-              then
-                let
-                  ts = T.split (==' ') q
-                  i = head ts
-                  t = tail ts
-                  r = translateEntry (gsShoebox gs) (SbeText (t !! 0))
-                in return (gs, [buildMessage (R.TestAnswer ( (T.concat [i, " ", encodeToText (prettyTRNode r)])))])
-              else
-                return (gs, [buildMessage (R.TestAnswer q)])
+            return (gs, [buildMessage (R.TestAnswer q)])
 
         _ -> return $ (gs, [buildMessage R.NoResponse])
 

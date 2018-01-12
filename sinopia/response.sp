@@ -19,6 +19,8 @@ enum QueryResponse {
      DbInfo Text;              // detailed DB info as JSON text
      DbQuery Text;             // query answer as JSON text
      WordQuery Text WordResponse; // id of query, answer for word query 
+     QueryTransCols Text;      // list of translation column info as JSON text
+     QueryTransWord Text Text; // query translation of word answer, id, JSON text
 }
 
 // response to commands

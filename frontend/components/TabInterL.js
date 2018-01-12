@@ -11,19 +11,88 @@ var uniqueId = function() {
     return 'id-' + Math.random().toString(36).substr(2, 16);
 }
 
+var colsTable = function (cols) {
+    if (typeof(cols) == "string") {
+        return (
+                <div>{cols}</div>
+        );
+    }
+    if (typeof(cols) == "object") {
+    return (
+            <table className="table table-bordered table-sm" style={{marginBottom:'0px', padding:'0px'}}>
+              <tr>
+                <td>
+                  {Object.keys(cols)[0]}
+                </td>
+                <td>
+                  <table className="table table-sm" style={{marginBottom:'0px', padding:'0px'}}>
+                  {Object.values(cols)[0].map(
+                      (c) => {
+                          return (
+                                    <tr>
+                                      <td>
+                                  <table className="table table-sm" style={{marginBottom:'0px', padding:'0px'}}>
+                                  {c.map(
+                                      (d) => {
+                                          if (typeof(d) == "string" || typeof(d) == "object") {
+                                          return (
+                                                  <tr><td>
+                                                  {colsTable(d)}
+                                                  </td></tr>
+                                          );
+                                          }
+                                      }
+                                  )}
+                                  </table>
+                                      </td>
+                                    </tr>
+                          );
+                      }
+                  )}
+                  </table>
+                </td>
+              </tr>
+            </table>
+    );
+    }
+}
+
+Object.compare = function (obj1, obj2) {
+	  //Loop through properties in object 1
+	  for (var p in obj1) {
+		    //Check property exists on both objects
+		    if (obj1.hasOwnProperty(p) !== obj2.hasOwnProperty(p)) return false;
+        
+		    switch (typeof (obj1[p])) {
+			      //Deep compare objects
+			  case 'object':
+				    if (!Object.compare(obj1[p], obj2[p])) return false;
+				    break;
+			      //Compare function code
+			  case 'function':
+				    if (typeof (obj2[p]) == 'undefined' || (p != 'compare' && obj1[p].toString() != obj2[p].toString())) return false;
+				    break;
+			      //Compare values
+			  default:
+				    if (obj1[p] != obj2[p]) return false;
+		    }
+	  }
+    
+	  //Check object 2 for any extra properties
+	  for (var p in obj2) {
+		    if (typeof (obj1[p]) == 'undefined') return false;
+	  }
+	  return true;
+};
+
 class WordL extends React.Component {
 
     // render function
     render () {
         return (
-
-        <div>
-        <h2>
-            {this.props.word}
-        </h2>
-            <p>{this.state.result}</p>
-        </div>
-
+            <div>
+            {colsTable(this.state.result)}
+            </div>
         );
     }
 
@@ -35,22 +104,23 @@ class WordL extends React.Component {
     }
 
     update(e, d) {
-        if (d.selector == Response.TestAnswer && d.record[0].split(" ")[0] == this.state.id)
+        if (d.selector == Response.ResQuery && d.record[0].selector == QueryResponse.QueryTransWord && d.record[0].record[0] == this.state.id)
         {
-            var ns = d.record[0].split(" ").slice(1).join("");
-            if (ns != this.state.result) {
-                this.setState( { result : ns});
+            var newResult = JSON.parse(d.record[0].record[1]);
+            if (!Object.compare(this.state.result, newResult)) {
+                console.log("query answer: ", d.record[0].record[1]);
+                this.setState( { result : newResult } );
             }
         }
     }
 
     componentDidMount() {
         this.props.sbc.subscribe(this.update);
-        this.props.sbc.callShoeboxCmd(new Command(Command.RunTest, this.state.id + " " + this.props.word ));
+        this.props.sbc.callShoeboxCmd(new Command(Command.CmdQuery, new QueryCommand(QueryCommand.QueryTransWord, this.state.id, this.props.word)));
     }
 
     componentDidUpdate() {
-        this.props.sbc.callShoeboxCmd(new Command(Command.RunTest, this.state.id + " " + this.props.word ));
+        this.props.sbc.callShoeboxCmd(new Command(Command.CmdQuery, new QueryCommand(QueryCommand.QueryTransWord, this.state.id, this.props.word)));
     }
 
     componentWillUnmount() {
@@ -89,14 +159,12 @@ class TabInterL extends React.Component {
          </div>
 
         <div>
-
             {this.state.words.map( (w) => {
                 return (
-                        <WordL word={w} sbc={this.props.sbc}>
+                        <WordL word={w} sbc={this.props.sbc} cols={this.state.cols}>
                         </WordL>
                 );
             })}
-
         </div>
 
     </div>
@@ -108,18 +176,21 @@ class TabInterL extends React.Component {
     // constructor
     constructor(props) {
         super(props);
-        this.state = { words : []};
+        this.state = { words : [], cols : [] };
         this.update = this.update.bind(this);
     }
 
     update(e, d) {
-        if (d.selector == Response.ResQuery && d.record[0].selector == QueryResponse.DbQuery)
+        if (d.selector == Response.ResQuery && d.record[0].selector == QueryResponse.QueryTransCols)
         {
+            this.setState({cols: JSON.parse(d.record[0].record[0])});
+            console.log("cols: ", this.state.cols);
         }
     }
 
     componentDidMount() {
         this.props.sbc.subscribe(this.update);
+        this.props.sbc.callShoeboxCmd(new Command(Command.CmdQuery, new QueryCommand(QueryCommand.QueryTransCols)));
     }
 
     componentWillUnmount() {

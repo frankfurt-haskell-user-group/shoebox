@@ -63,6 +63,8 @@ class QueryCommand extends CborEnumItem {
 QueryCommand.DbInfo = 0;   // get detailed info on a database
 QueryCommand.DbQuery = 1;   // query a database for an entry
 QueryCommand.WordQuery = 2;   // (id of query) (word of query)
+QueryCommand.QueryTransCols = 3;   // query column information (translation steps)
+QueryCommand.QueryTransWord = 4;   // query translation of word, id, word
 
 // all possible commands for the shoebox module
 // gathered from the different command sub types

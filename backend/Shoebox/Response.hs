@@ -27,6 +27,8 @@ data WordResponse = WREntries [Text] -- ^ answers for this word
 data QueryResponse = DbInfo Text -- ^ detailed DB info as JSON text 
     | DbQuery Text -- ^ query answer as JSON text 
     | WordQuery Text WordResponse -- ^ id of query, answer for word query  
+    | QueryTransCols Text -- ^ list of translation column info as JSON text 
+    | QueryTransWord Text Text -- ^ query translation of word answer, id, JSON text 
     deriving (Eq, Read, Show)
 
 -- | response to commands
@@ -68,6 +70,8 @@ instance Serialise QueryResponse where
     encode (DbInfo v1) = encodeListLen 2 <>  encode (0::Int) <> encode v1
     encode (DbQuery v1) = encodeListLen 2 <>  encode (1::Int) <> encode v1
     encode (WordQuery v1 v2) = encodeListLen 3 <>  encode (2::Int) <> encode v1<> encode v2
+    encode (QueryTransCols v1) = encodeListLen 2 <>  encode (3::Int) <> encode v1
+    encode (QueryTransWord v1 v2) = encodeListLen 3 <>  encode (4::Int) <> encode v1<> encode v2
     decode = do
         decodeListLen
         i <- decode :: Decoder s Int
@@ -75,6 +79,8 @@ instance Serialise QueryResponse where
             0 -> (DbInfo <$> decode)
             1 -> (DbQuery <$> decode)
             2 -> (WordQuery <$> decode <*> decode)
+            3 -> (QueryTransCols <$> decode)
+            4 -> (QueryTransWord <$> decode <*> decode)
 
 instance Serialise Response where
     encode (NoResponse) = encodeListLen 1 <>  encode (0::Int) 

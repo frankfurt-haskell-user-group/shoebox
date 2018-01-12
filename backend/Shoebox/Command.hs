@@ -23,6 +23,8 @@ data FileCommand = GetCurrentDB -- ^ show DB in use
 data QueryCommand = DbInfo -- ^ get detailed info on a database 
     | DbQuery Text -- ^ query a database for an entry 
     | WordQuery Text Text -- ^ (id of query) (word of query) 
+    | QueryTransCols -- ^ query column information (translation steps) 
+    | QueryTransWord Text Text -- ^ query translation of word, id, word 
     deriving (Eq, Read, Show)
 
 -- | all possible commands for the shoebox module
@@ -57,6 +59,8 @@ instance Serialise QueryCommand where
     encode (DbInfo) = encodeListLen 1 <>  encode (0::Int) 
     encode (DbQuery v1) = encodeListLen 2 <>  encode (1::Int) <> encode v1
     encode (WordQuery v1 v2) = encodeListLen 3 <>  encode (2::Int) <> encode v1<> encode v2
+    encode (QueryTransCols) = encodeListLen 1 <>  encode (3::Int) 
+    encode (QueryTransWord v1 v2) = encodeListLen 3 <>  encode (4::Int) <> encode v1<> encode v2
     decode = do
         decodeListLen
         i <- decode :: Decoder s Int
@@ -64,6 +68,8 @@ instance Serialise QueryCommand where
             0 -> (pure DbInfo)
             1 -> (DbQuery <$> decode)
             2 -> (WordQuery <$> decode <*> decode)
+            3 -> (pure QueryTransCols)
+            4 -> (QueryTransWord <$> decode <*> decode)
 
 instance Serialise Command where
     encode (NoCommand) = encodeListLen 1 <>  encode (0::Int) 
