@@ -85,26 +85,31 @@ encodeToCbor msg = let
 prettyTRNode :: TRNode -> Value
 prettyTRNode trn = let
 
+  -- get value representation of dataentry
   _pd d = case d of
                 SbeText t -> String t
                 SbeTextArray ta -> String $ T.concat $ intersperse ", " ta
                 SbeNumber n -> Number (fromIntegral n)
+
+  -- get text representation of dataentry
   _pd' d = case d of
                 SbeText t -> t
                 SbeTextArray ta -> T.concat $ intersperse ", " ta
                 SbeNumber n -> T.pack (show n)
 
+  -- avl' get value representation of DList
   avl = Array . V.fromList
   avl'  = avl . map avl
 
-  pl l = avl' (map (map _pd) (esFromTrl l))
+  -- pl pretty print dlist of lookup results
+  pl l = avl' (getDList (fmap (_pd . lrData) (trlResults l)))
 
   in case trn of
-    TRN l [] -> Object (M.fromList [(_pd' (trlSource l), pl l)])
-    TRN l ns -> Object (M.fromList [(_pd' (trlSource l), avl' (map (map prettyTRNode) ns))])
+    TRN l (DL []) -> Object (M.fromList [(_pd' (trlEntry l), pl l)])
+    TRN l ns -> Object (M.fromList [(_pd' (trlEntry l), avl' (getDList (fmap prettyTRNode ns)))])
 
 getCols :: Shoebox -> Value
 getCols sb = let
-  trs = sbTranslations sb
-  ob tr = Object (M.fromList [("colName", String (sbdtMemo (trTargetTag tr))), ("lookups", toJSON (trLookup tr))])
-  in ((Array . V.fromList) (map ob trs))
+  rules = sbTranslationRules sb
+  ob r = Object (M.fromList [("colName", String (sbdtMemo (trTargetTag r))), ("lookups", toJSON (trLookup r))])
+  in ((Array . V.fromList) (map ob rules))

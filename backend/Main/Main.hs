@@ -80,7 +80,7 @@ doCommand gs l = let
 
         Just (C.CmdQuery C.DbInfo) -> do
             let sb = gsShoebox gs
-            let translations = sbTranslations sb
+            let translations = sbTranslationRules sb
             let (ShoeboxData dmap)  = sbData sb
             let dataInfo sbdata = (desc, schema) where
                     desc = sbdbDescription sbdata
