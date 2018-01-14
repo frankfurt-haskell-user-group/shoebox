@@ -11,7 +11,7 @@ var uniqueId = function() {
     return 'id-' + Math.random().toString(36).substr(2, 16);
 }
 
-var colsTable = function (cols) {
+var colsTable = function (level, l, cols) {
     if (typeof(cols) == "string") {
         return (
                 <div>{cols}</div>
@@ -19,9 +19,9 @@ var colsTable = function (cols) {
     }
     if (typeof(cols) == "object") {
     return (
-            <table className="table table-bordered table-sm" style={{marginBottom:'0px', padding:'0px'}}>
+            <table className={(level == 0) ? "table table-sm table-bordered" : "table table-sm"} style={{marginBottom:'5px', padding:'0px'}}>
               <tr>
-                <td>
+                <td style={{width:100/(l+1-level)+'%'}}>
                   {Object.keys(cols)[0]}
                 </td>
                 <td>
@@ -31,13 +31,13 @@ var colsTable = function (cols) {
                           return (
                                     <tr>
                                       <td>
-                                  <table className="table table-sm" style={{marginBottom:'0px', padding:'0px'}}>
+                                  <table className={(level == 0) ? "table table-sm table-bordered" : "table table-sm"} style={{marginBottom:'0px', padding:'0px'}}>
                                   {c.map(
                                       (d) => {
                                           if (typeof(d) == "string" || typeof(d) == "object") {
                                           return (
                                                   <tr><td>
-                                                  {colsTable(d)}
+                                                  {colsTable(level+1, l, d)}
                                                   </td></tr>
                                           );
                                           }
@@ -91,7 +91,7 @@ class WordL extends React.Component {
     render () {
         return (
             <div>
-            {colsTable(this.state.result)}
+                {colsTable(0, this.props.cols.length, this.state.result)}
             </div>
         );
     }
@@ -159,6 +159,16 @@ class TabInterL extends React.Component {
          </div>
 
         <div>
+            <table cassName="table table-sm" style={{width:'100%'}}>
+            <tr>
+            <td style={{width:100/(this.state.cols.length+1)+'%'}}><b>word</b></td>
+            {this.state.cols.map( (c) => {
+                return (
+                        <td style={{width:100/(this.state.cols.length+1)+'%'}}><b>{c.colName}</b></td>
+                );
+            })}
+            </tr>
+            </table>
             {this.state.words.map( (w) => {
                 return (
                         <WordL word={w} sbc={this.props.sbc} cols={this.state.cols}>
