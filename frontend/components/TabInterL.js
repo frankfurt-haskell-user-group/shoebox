@@ -119,6 +119,7 @@ class ChangeL extends React.Component {
         lookups.map( (l) => {
             if (db == (l.tag == "LUKey" ? l.contents.sbdiName : l.contents[0].sbdiName)) {
                 var memo = null;
+                var transA = [];;
                 if (l.tag == "LUKey") {
                     // we need to get db tab from next level :-( maybe design of LU.. can be optimized
                     var levels2 = cols[level+1].lookups;
@@ -127,12 +128,19 @@ class ChangeL extends React.Component {
                             memo = levels2[l2].contents[1].sbdtMemo;
                         }
                     }
-                } else {
+                    transA = trans.split(/(\;)/).filter( function(e) { return (e.trim().length > 0 && e.trim() != ";"); } );
+                }
+                if (l.tag == "LUMorphemeBreak") {
                     memo = l.contents[1].sbdtMemo;
+                    transA = trans.split(/(-)/).filter( function(e) { return (e.trim().length > 0 && e.trim() != "-"); } );
+                }
+                if (l.tag == "LUTranslate") {
+                    memo = l.contents[1].sbdtMemo;
+                    transA = trans.split(/(;)/).filter( function(e) { return (e.trim().length > 0 && e.trim() != ";"); } );
                 }
                 if (memo) {
-                    console.log("dbUpdate", word, trans, db, memo, this.props.superId);
-                    this.props.sbc.callShoeboxCmd(new Command(Command.CmdQuery, new QueryCommand(QueryCommand.QueryInsertWord, this.props.superId, word, trans, db, memo)));
+                    console.log("dbUpdate", word, transA, db, memo, this.props.superId);
+                    this.props.sbc.callShoeboxCmd(new Command(Command.CmdQuery, new QueryCommand(QueryCommand.QueryInsertWord, this.props.superId, word, transA, db, memo)));
                 }
             }
         })

@@ -107,7 +107,7 @@ doCommand gs l = let
             -- dbUpdate :: SBDatabase -> SBDataEntry -> SBDataRow -> Either SBError SBDatabase
             let (ShoeboxData m) = sbData (gsShoebox gs)
             let d = MB.fromJust (M.lookup (SBDbIdent dbid) m)
-            let u = dbUpdate d (SbeText word) (SBDataRow (SBDataTag tagid) (SbeTextArray [translation]))
+            let u = dbUpdate d (SbeText word) (SBDataRow (SBDataTag tagid) (SbeTextArray translation))
             let gs' = case u of
                  (Right sbd) -> gs {gsShoebox = ( (gsShoebox gs) {sbData = (ShoeboxData (M.insert (SBDbIdent dbid) sbd m)) }) }
                  _ -> gs

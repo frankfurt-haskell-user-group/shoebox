@@ -58,6 +58,69 @@ FileCommand.SaveDBAs = 6;   // save the DB in use with a new name
 
 // commands for database query operations
 class QueryCommand extends CborEnumItem {
+    toData () {
+       var arr_in = this.record.slice(); var arr_out = [];
+       if (this.selector == 0) {
+       }
+       if (this.selector == 1) {
+            arr_out.push(arr_in.shift());
+       }
+       if (this.selector == 2) {
+            arr_out.push(arr_in.shift());
+            arr_out.push(arr_in.shift());
+       }
+       if (this.selector == 3) {
+       }
+       if (this.selector == 4) {
+            arr_out.push(arr_in.shift());
+            arr_out.push(arr_in.shift());
+       }
+       if (this.selector == 5) {
+            arr_out.push(arr_in.shift());
+            arr_out.push(arr_in.shift());
+            arr_out.push(
+              arr_in.shift().map(function (a) { var arr_in = [a]; var arr_out = [];
+              arr_out.push(arr_in.shift());
+              return arr_out[0]; }) 
+            );
+            arr_out.push(arr_in.shift());
+            arr_out.push(arr_in.shift());
+       }
+       return [this.selector, ...arr_out];
+    }
+
+     fromData (json_data) {
+       var arr_in = json_data.slice(1); var arr_out = [];
+       if (json_data[0] == 0) {
+       }
+       if (json_data[0] == 1) {
+            arr_out.push(arr_in.shift());
+       }
+       if (json_data[0] == 2) {
+            arr_out.push(arr_in.shift());
+            arr_out.push(arr_in.shift());
+       }
+       if (json_data[0] == 3) {
+       }
+       if (json_data[0] == 4) {
+            arr_out.push(arr_in.shift());
+            arr_out.push(arr_in.shift());
+       }
+       if (json_data[0] == 5) {
+            arr_out.push(arr_in.shift());
+            arr_out.push(arr_in.shift());
+            arr_out.push(
+              arr_in.shift().map(function (a) { var arr_in = [a]; var arr_out = [];
+              arr_out.push(arr_in.shift());
+              return arr_out[0]; }) 
+            );
+            arr_out.push(arr_in.shift());
+            arr_out.push(arr_in.shift());
+       }
+       this.selector = json_data[0];
+       this.record = arr_out;
+       return this;
+     }
 }
 
 QueryCommand.DbInfo = 0;   // get detailed info on a database
