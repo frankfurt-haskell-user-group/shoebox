@@ -36,6 +36,8 @@ executable shoeB
   main-is:             Main.hs
   build-depends:       base >=4.9 && <4.10
                      , shoebox >=  0.1 && <0.2
+                     , containers
+                     , text
                      , bytestring
                      , text
   hs-source-dirs:      Main

@@ -16,6 +16,7 @@ enum QueryCommand {
   WordQuery Text Text; // (id of query) (word of query)
   QueryTransCols;  // query column information (translation steps)
   QueryTransWord Text Text;  // query translation of word, id, word
+  QueryInsertWord Text Text Text Text Text;  // query insertion of word: id, word, translation, db, memo
 }
 
 // all possible commands for the shoebox module

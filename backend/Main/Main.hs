@@ -9,6 +9,8 @@ import qualified Shoebox.Command as C
 import qualified Shoebox.Response as R
 import Shoebox.Util
 import Shoebox.Translation
+import Data.Map as M
+import Data.Maybe as MB
 
 import qualified Data.Text as T
 import Data.Maybe
@@ -99,6 +101,19 @@ doCommand gs l = let
         Just (C.CmdQuery (C.QueryTransWord idQ word)) -> do
             let r = translateEntry (gsShoebox gs) (SbeText word)
             return (gs, [buildMessage (R.ResQuery (R.QueryTransWord idQ (encodeToText (prettyTRNode r))))])
+
+        Just (C.CmdQuery (C.QueryInsertWord idQ word translation dbid tagid)) -> do
+            -- insert data
+            -- dbUpdate :: SBDatabase -> SBDataEntry -> SBDataRow -> Either SBError SBDatabase
+            let (ShoeboxData m) = sbData (gsShoebox gs)
+            let d = MB.fromJust (M.lookup (SBDbIdent dbid) m)
+            let u = dbUpdate d (SbeText word) (SBDataRow (SBDataTag tagid) (SbeTextArray [translation]))
+            let gs' = case u of
+                 (Right sbd) -> gs {gsShoebox = ( (gsShoebox gs) {sbData = (ShoeboxData (M.insert (SBDbIdent dbid) sbd m)) }) }
+                 _ -> gs
+            -- return updated translation entry for word, id, toggle update of GUI
+            let r = translateEntry (gsShoebox gs') (SbeText word)
+            return (gs', [buildMessage (R.ResQuery (R.QueryTransWord idQ (encodeToText (prettyTRNode r))))])
 
         Just (C.RunTest q) -> do
             return (gs, [buildMessage (R.TestAnswer q)])

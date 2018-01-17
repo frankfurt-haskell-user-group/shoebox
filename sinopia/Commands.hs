@@ -23,6 +23,7 @@ data QueryCommand = DbInfo -- ^ get detailed info on a database
     | WordQuery Text Text -- ^ (id of query) (word of query) 
     | QueryTransCols -- ^ query column information (translation steps) 
     | QueryTransWord Text Text -- ^ query translation of word, id, word 
+    | QueryInsertWord Text Text Text Text Text -- ^ query insertion of word: id, word, translation, db, memo 
     deriving (Eq, Read, Show)
 
 -- | all possible commands for the shoebox module
@@ -59,6 +60,7 @@ instance Serialise QueryCommand where
     encode (WordQuery v1 v2) = encodeListLen 3 <>  encode (2::Int) <> encode v1<> encode v2
     encode (QueryTransCols) = encodeListLen 1 <>  encode (3::Int) 
     encode (QueryTransWord v1 v2) = encodeListLen 3 <>  encode (4::Int) <> encode v1<> encode v2
+    encode (QueryInsertWord v1 v2 v3 v4 v5) = encodeListLen 6 <>  encode (5::Int) <> encode v1<> encode v2<> encode v3<> encode v4<> encode v5
     decode = do
         decodeListLen
         i <- decode :: Decoder s Int
@@ -68,6 +70,7 @@ instance Serialise QueryCommand where
             2 -> (WordQuery <$> decode <*> decode)
             3 -> (pure QueryTransCols)
             4 -> (QueryTransWord <$> decode <*> decode)
+            5 -> (QueryInsertWord <$> decode <*> decode <*> decode <*> decode <*> decode)
 
 instance Serialise Command where
     encode (NoCommand) = encodeListLen 1 <>  encode (0::Int) 

@@ -69,6 +69,7 @@ QueryCommand.DbQuery = 1;   // query a database for an entry
 QueryCommand.WordQuery = 2;   // (id of query) (word of query)
 QueryCommand.QueryTransCols = 3;   // query column information (translation steps)
 QueryCommand.QueryTransWord = 4;   // query translation of word, id, word
+QueryCommand.QueryInsertWord = 5;   // query insertion of word: id, word, translation, db, memo
 
 // all possible commands for the shoebox module
 // gathered from the different command sub types
