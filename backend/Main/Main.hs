@@ -11,6 +11,7 @@ import Shoebox.Util
 import Shoebox.Translation
 import Data.Map as M
 import Data.Maybe as MB
+import System.Environment as E
 
 import qualified Data.Text as T
 import Data.Maybe
@@ -23,7 +24,11 @@ data GlobalState = GlobalState {
 
 defaultGS :: IO GlobalState
 defaultGS = do
-    let (dn, fn) = ("data", "frz")
+    d <- E.lookupEnv "SHOEBOX_PATH"
+    let ds = case d of
+                Just d' -> T.concat [T.pack d', "/data"]
+                Nothing -> "data"
+    let (dn, fn) = (ds, "frz")
     sb <- readShoebox dn fn
     let gs = GlobalState dn fn sb
     return gs
